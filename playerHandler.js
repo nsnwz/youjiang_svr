@@ -19,11 +19,19 @@ playerHandler.getPlayerInfo = function(req, res) {
         async.waterfall([
             function(db) {
                 redisClient.hgetall(id, 'base_' + req.query.id, function(err, redis) {
-                    var p = new playerModel();
-                    p.initFromDB(redis);
-                    playerSystem.addPlayer(p);
-                    console.log('get redis: ', redis);
-                    console.log(p);
+                    console.log("get userinfo");
+                    console.log(redis);
+                    if (redis != null) {
+                        var p = new playerModel();
+                        p.initFromDB(redis);
+                        playerSystem.addPlayer(p);
+                        console.log(p.uid);
+                        res.end(JSON.stringify({ret:0, uid: p.uid, name: p.name}));
+                        console.log('get redis: ', redis);
+                        console.log(p);
+                    } else {
+                        res.end(JSON.stringify({ret:1}));
+                    }
                 })
             }
         ], function(err, res) {

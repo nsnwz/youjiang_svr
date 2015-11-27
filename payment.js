@@ -17,12 +17,13 @@ payment.pay = function(res, req) {
         app_id : app_id,
         timestamp: timestamp,
         app_sign: app_sign,
-        channel: "ALI_WEB",
+        channel: "WX_JSAPI",
         total_fee: 1,
         bill_no: "bctest" + timestamp,
         title: "游将网络",
         return_url: "beecloud.cn",
-        optional: { myMsg: "none"}
+        optional: { myMsg: "none"},
+        openid : "ogHH1wX2vj9jNAoS5WE7IMgF8p8w"
     }
     try {
         var promise = api.bill(data);
