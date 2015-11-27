@@ -10,23 +10,20 @@ var async = require('async');
 var playerHandler = module.exports;
 
 playerHandler.getPlayerInfo = function(req, res) {
-    var id = req.query.id;
-    console.log(req.query.id);
-    var player = playerSystem.getPlayer(req.query.id);
+    var openid = req.query.openid;
+    console.log(req.query.openid);
+    var player = playerSystem.getPlayer(req.query.openid);
     if (player != null) {
-        console.log('found player: ', req.query.id);
+        console.log('found player: ', req.query.openid);
     } else {
         async.waterfall([
             function(db) {
-                redisClient.hgetall(id, 'base_' + req.query.id, function(err, redis) {
-                    console.log("get userinfo");
-                    console.log(redis);
+                redisClient.getKey(req.query.openid, function(err, redis) {
                     if (redis != null) {
                         var p = new playerModel();
-                        p.initFromDB(redis);
+                        p.initFromDB(JSON.parse(redis));
                         playerSystem.addPlayer(p);
-                        console.log(p.uid);
-                        res.end(JSON.stringify({ret:0, uid: p.uid, name: p.name}));
+                        res.end(JSON.stringify({ret:0, nickname: p.nickname, sex: p.sex, language: p.language, city: p.city, province: p.province, country: p.country, headimgurl: p.headimgurl}));
                         console.log('get redis: ', redis);
                         console.log(p);
                     } else {

@@ -5,6 +5,8 @@
 var async = require('async');
 var oauth = require('wechat-oauth');
 var oauthConfig = require('./config/oauth');
+var playerModel = require('./player');
+var playerSystem = require('./playerSystem');
 
 var client = new oauth(oauthConfig.appid, oauthConfig.secret);
 
@@ -34,6 +36,10 @@ weiXin.getWeiXinUserInfo = function(res, req) {
             client.getUser(openid, function(err, res) {
                 var userInfo = res;
                 req.send(userInfo);
+                var p = new playerModel();
+                p.initFromWeiXin(userInfo);
+                playerSystem.addPlayer(p);
+                p.saveBaseinfo();
                 console.log(userInfo);
             })
         }

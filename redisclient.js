@@ -26,7 +26,7 @@ redis.test = function() {
     console.log("redis test");
 };
 
-redis.updateKey = function(nPlayerID, sType, nScore, cb) {
+redis.updateKey = function(sType, nScore, cb) {
     redisDB.set(sType, nScore, function(err, res) {
         if (err != null) {
             console.log('[redisclient update socre error: ' + err.message);
@@ -37,7 +37,7 @@ redis.updateKey = function(nPlayerID, sType, nScore, cb) {
     });
 };
 
-redis.getKey = function(nPlayerID, sType, cb) {
+redis.getKey = function(sType, cb) {
     redisDB.get(sType, function(err, res) {
         if (err != null) {
             console.log("[redisclient get socre error: " + err.message);
@@ -48,7 +48,7 @@ redis.getKey = function(nPlayerID, sType, cb) {
     });
 };
 
-redis.hgetall = function(nPlayerID, sType, cb) {
+redis.hgetall = function(sType, cb) {
     redisDB.hgetall(sType, function(err, res) {
          if (err != null) {
             console.log('hgetall error: ' + err.message);
