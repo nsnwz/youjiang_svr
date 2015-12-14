@@ -7,6 +7,7 @@ var fieldSeed = function() {
     this.itemId = 0;
     this.idx = 0;
     this.starttime = 0;
+    this.addvaule = 0;
 };
 
 module.exports = fieldSeed;

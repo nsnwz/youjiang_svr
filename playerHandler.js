@@ -50,3 +50,30 @@ playerHandler.addItem = function(req, res) {
         player.addItem(1000, 1);
     }
 };
+
+playerHandler.putSeed = function(req, res) {
+
+  console.log("put seed");
+};
+
+playerHandler.harvestSeed = function(req, res) {
+
+};
+
+playerHandler.getRank = function(req, res) {
+
+};
+
+playerHandler.upSeedSpeed = function(req, res) {
+
+};
+
+playerHandler.enterFight = function(req, res) {
+
+};
+
+
+playerHandler.fight = function(req, res) {
+
+};
+
