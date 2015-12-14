@@ -10,8 +10,15 @@ var redisClient = require('./redisclient');
  * 用户数据信息
  */
 var player = function() {
-    this.uid = 0;
-    this.name = 'default';
+    this.openid = null;
+    this.nickname = 'default';
+    this.sex = null;
+    this.language = null;
+    this.city = null;
+    this.province = null;
+    this.country = null;
+    this.headimgurl = null;
+    this.privilege = null;
 };
 
 player.prototype.initFromDB = function(dbrecord) {
