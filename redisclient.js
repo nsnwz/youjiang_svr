@@ -50,7 +50,18 @@ redis.getKey = function(sType, cb) {
 
 redis.hgetall = function(sType, cb) {
     redisDB.hgetall(sType, function(err, res) {
-         if (err != null) {
+        if (err != null) {
+            console.log('hgetall error: ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+        }
+    });
+};
+
+redis.hset = function(sType, sField, sValue, cb) {
+    redisDB.hset(sType, sField, sValue, function(err, res) {
+        if (err != null) {
             console.log('hgetall error: ' + err.message);
             utils.invokeCallback(cb, err.message, null);
         } else {

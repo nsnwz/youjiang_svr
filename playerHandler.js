@@ -38,3 +38,15 @@ playerHandler.getPlayerInfo = function(req, res) {
         });
      }
 };
+
+
+playerHandler.addItem = function(req, res) {
+    console.log("add item");
+    var p = new playerModel();
+    p.addItem(1000, 1);
+    return true;
+    var player = playerSystem.getPlayer(req.query.openid);
+    if (player != null) {
+        player.addItem(1000, 1);
+    }
+};
