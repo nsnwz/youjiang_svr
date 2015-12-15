@@ -5,6 +5,9 @@
 require('module-unique').init();
 
 var redisClient = require('./redisclient');
+var code = require("./code");
+var dataapi = require('./dataapi');
+var fieldSeed = require('./fieldSeed');
 
 /**
  * 用户数据信息
@@ -68,16 +71,23 @@ player.prototype.getItemAmount = function(nID) {
   }
 };
 
-player.prototype.descItem = function(nID, nNum) {
+player.prototype.reduceItem = function(nID, nNum) {
     if (this.getItemAmount(nID) < nNum) {
         return false;
     } else {
         this.bag[nID] -= nNum;
     }
+    console.log(JSON.stringify(this.bag));
+    redisClient.hset(1000 + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
     return true;
 };
 
 player.prototype.addItem = function(nID, nAmount) {
+    var config = dataApi.item.findById(nID);
+    if (!!config == false) {
+       console.log('add item with config id is 0');
+        return false;
+    }
     if (!!this.bag[nID]) {
         console.log(this.bag[nID]);
         this.bag[nID] += nAmount;
@@ -87,22 +97,24 @@ player.prototype.addItem = function(nID, nAmount) {
         this.bag[nID] += nAmount;
     }
     console.log(JSON.stringify(this.bag));
-    redisClient.hset(1000 + "PLANT", "item", JSON.stringify(this.bag), null);
+    redisClient.hset(1000 + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
     return true;
 };
 
 player.prototype.putSeed = function(nID, fieldID) {
-    if (this.descItem(nID, 1)) {
+    //if (this.reduceItem(nID, 1)) {
         var seed = new fieldSeed();
         seed.itemId = nID;
-        seed.starttime = date.getTime();
+        //seed.starttime = date.getTime();
+        seed.starttime = 1000;
         seed.idx = fieldID;
         this.fields[fieldID] = seed;
-    }
-    redisClient.hset(1000 + "PLANT", "item", JSON.stringify(this.bag), null);
+    //}
+    redisClient.hset(1000 + "PLANT", "fields", JSON.stringify(this.fields), null);
 };
 
+player.prototype.accelerateGrow = function(nID, fieldID) {
 
-
+};
 
 module.exports = player;

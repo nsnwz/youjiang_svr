@@ -52,8 +52,15 @@ playerHandler.addItem = function(req, res) {
 };
 
 playerHandler.putSeed = function(req, res) {
-
-  console.log("put seed");
+    console.log("put seed");
+    var p = new playerModel();
+    p.putSeed(10, 1);
+    return true;
+    var player = playerSystem.getPlayer(req.query.openid);
+    if (player != null) {
+        player.addItem(1000, 1);
+    }
+    console.log("put seed");
 };
 
 playerHandler.harvestSeed = function(req, res) {
@@ -65,7 +72,15 @@ playerHandler.getRank = function(req, res) {
 };
 
 playerHandler.upSeedSpeed = function(req, res) {
-
+    console.log("add item");
+    var p = new playerModel();
+   // p.addItem(1000, 1);
+    p.putSeed(10, 1);
+    return true;
+    var player = playerSystem.getPlayer(req.query.openid);
+    if (player != null) {
+        player.addItem(1000, 1);
+    }
 };
 
 playerHandler.enterFight = function(req, res) {

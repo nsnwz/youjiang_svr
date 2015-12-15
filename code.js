@@ -6,6 +6,6 @@
  */
 
 module.exports = {
+    GAME_NAME : "PLANT",
     ITEM_ERROR : {}
-
 };
