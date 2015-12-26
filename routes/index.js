@@ -17,4 +17,10 @@ router.get('/weixin/userinfo', weiXin.getWeiXinUserInfo);
 
 router.get('/pay', payment.pay);
 
+router.get('/item', playerHandler.addItem);
+
+router.get('/putseed', playerHandler.putSeed);
+
+router.get('/enterfight', playerHandler.enterFight);
+
 module.exports = router;

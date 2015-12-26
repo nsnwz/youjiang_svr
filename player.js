@@ -28,6 +28,7 @@ var player = function() {
     this.def = 0;
     this.skills = {};
     this.session = null;
+    this.fightID = 0;
 };
 
 player.prototype.initFromDB = function(dbrecord) {
@@ -40,6 +41,14 @@ player.prototype.initFromDB = function(dbrecord) {
     this.country = dbrecord.country;
     this.headimgurl = dbrecord.headimgurl;
     this.privilege = dbrecord.privilege;
+};
+
+player.prototype.initItem = function(dbrecord) {
+    this.bag = dbrecord;
+};
+
+player.prototype.initFields = function(dbrecord) {
+    this.fields = dbrecord;
 };
 
 player.prototype.initFromWeiXin = function(weixin) {
@@ -83,11 +92,13 @@ player.prototype.reduceItem = function(nID, nNum) {
 };
 
 player.prototype.addItem = function(nID, nAmount) {
+    /*
     var config = dataApi.item.findById(nID);
     if (!!config == false) {
        console.log('add item with config id is 0');
         return false;
     }
+    */
     if (!!this.bag[nID]) {
         console.log(this.bag[nID]);
         this.bag[nID] += nAmount;
@@ -114,7 +125,11 @@ player.prototype.putSeed = function(nID, fieldID) {
 };
 
 player.prototype.accelerateGrow = function(nID, fieldID) {
-
+    var field = this.fields[fieldID];
+    if (!!field) {
+        field.addvaule += 2;
+        redisClient.hset(1000 + "PLANT", "fields", JSON.stringify(this.fields), null);
+    }
 };
 
 module.exports = player;

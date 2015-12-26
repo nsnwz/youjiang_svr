@@ -1,17 +1,10 @@
 /**
  * Created by miller on 2015/12/15.
  */
-/**
- * Created with JetBrains WebStorm.
- * User: ma.ji
- * Date: 13-7-9
- * Time: 下午2:39
- * To change this template use File | Settings | File Templates.
- */
 
 // require json files
 var fs = require('fs');
-var item = require('./config/data/item_item');
+var seed = require('./config/data/seed');
 
 /**
  * Data model `new Data()`
@@ -20,6 +13,7 @@ var item = require('./config/data/item_item');
  *
  */
 var Data = function(data,sFileName) {
+    /*
     var fields = {};
 
     data[0].forEach(function(i, k) {
@@ -34,9 +28,10 @@ var Data = function(data,sFileName) {
         result[item.id] = item;
         ++length;
     });
+    */
 
-    this.data = result;
-    this.length = length;
+    this.data = data;
+    //this.length = length;
     this.filename= sFileName;
 
 };
@@ -49,6 +44,7 @@ var Data = function(data,sFileName) {
  * @return {Object} result
  * @api private
  */
+    /*
 var mapData = function(fields, item) {
     var obj = {};
     for (var k in fields) {
@@ -56,6 +52,7 @@ var mapData = function(fields, item) {
     }
     return obj;
 };
+*/
 
 /**
  * find items by attribute
@@ -123,7 +120,7 @@ Data.prototype.findById = function(id) {
 Data.prototype.all = function() {
     return this.data;
 };
-
+/*
 Data.prototype.reload = function(){
     var self = this;
     if(this.filename == null){
@@ -164,7 +161,8 @@ Data.prototype.reload = function(){
         return 'success';
     });
 };
+*/
 
 module.exports = {
-    item: new Data(item,'item_item')
+    seed: new Data(seed,'seed')
 };

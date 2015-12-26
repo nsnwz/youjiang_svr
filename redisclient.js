@@ -69,3 +69,15 @@ redis.hset = function(sType, sField, sValue, cb) {
         }
     });
 };
+
+redis.hget = function(sType, sField, cb) {
+    redisDB.hget(sType, sField, function(err, res) {
+        if (err != null) {
+            console.log('hget error: ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            console.log("hget succ" + sType + sField);
+            utils.invokeCallback(cb, null, res);
+        }
+    });
+};
