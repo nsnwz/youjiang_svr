@@ -48,5 +48,5 @@ var httpServer = http.createServer(function (req, res) {
 });
 
 httpServer.listen(80);
-console.log('server start');
+console.log('server start ');
 
