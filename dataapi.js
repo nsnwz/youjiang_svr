@@ -164,5 +164,5 @@ Data.prototype.reload = function(){
 */
 
 module.exports = {
-    seed: new Data(seed,'seed')
+    seed : new Data(seed,'seed')
 };

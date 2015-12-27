@@ -9,39 +9,59 @@ var async = require('async');
 var fightModel = require('./fight');
 var fightSystem = require('./fightSystem');
 var code = require("./code");
+var dataapi = require('./dataapi');
+var uuid = require('node-uuid');
 
 var playerHandler = module.exports;
 
+playerHandler.addPlayer = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    redisClient.incr("guid", function(err, redis) {
+        p = new playerModel();
+        p.id = redis + 5000;
+        p.name = params.name;
+        p.pic = "1234";
+        p.saveBaseinfo();
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify({uid : p.id, name : p.name, pic : p.pic })}));
+    });
+};
+
 playerHandler.getPlayerInfo = function(req, res) {
-    var openid = req.query.openid;
-    console.log(req.query.openid);
-    var p = playerSystem.getPlayer(req.query.openid);
+    var id = req.body.uid;
+    console.log(req.body.uid);
+    var p = playerSystem.getPlayer(req.body.uid);
     if (p != null) {
-        console.log('found player: ', req.query.openid);
+        console.log('found player: ', req.body.uid);
+        res.end(p.getLoginJson());
+        return;
     } else {
         async.waterfall([
             function(cb) {
-                redisClient.getKey(req.query.openid, cb);
+                redisClient.getKey(req.body.uid, cb);
             }, function(redis, cb) {
-                if (res != null) {
+                if (redis != null) {
                     p = new playerModel();
                     p.initFromDB(JSON.parse(redis));
                     playerSystem.addPlayer(p);
-                    res.header("Access-Control-Allow-Origin", "*");
-                    res.end(JSON.stringify({ret:0, nickname: p.nickname, sex: p.sex, language: p.language, city: p.city, province: p.province, country: p.country, headimgurl: p.headimgurl}));
                     console.log('get redis: ', redis);
                     console.log(p);
                     redisClient.hget(1000 + code.GAME_NAME, "item", cb);
+                } else {
+                    res.end(JSON.stringify({cmdID: req.body.cmdID, ret:code.NOT_FIND_PALYER_ERROR}));
+                    return;
                 }
             }, function(redis, cb) {
                 if (redis != null) {
                     p.initItem(JSON.parse(redis));
                     console.log(p.bag);
-                    redisClient.hget(1000 + code.GAME_NAME, "fields", cb);
-                 }
+                }
+                redisClient.hget(1000 + code.GAME_NAME, "fields", cb);
             }, function(redis, cb) {
-                p.initFields(JSON.parse(redis));
-                console.log(p.fields);
+                if (redis != null) {
+                    p.initFields(JSON.parse(redis));
+                    console.log(p.fields);
+                }
+                res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
             }
         ], function(err, res) {
             if (err != null) {
@@ -53,15 +73,18 @@ playerHandler.getPlayerInfo = function(req, res) {
 
 
 playerHandler.addItem = function(req, res) {
-    console.log("add item");
-    var p = new playerModel();
-    p.addItem(1000, 1);
-    p.addItem(1001, 1);
-    return true;
-    var player = playerSystem.getPlayer(req.query.openid);
-    if (player != null) {
-        player.addItem(1000, 1);
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end({ret:code.NOT_FIND_PALYER_ERROR});
+        return;
     }
+    if (!dataapi.seed.findById(params.item_id)) {
+        res.end({ret:code.ITEM_ERROR.NOT_EXIST_ITEM});
+        return;
+    }
+    p.addItem(req.body.item_id, params.count);
+    res.end({ret:code.OK});
 };
 
 playerHandler.putSeed = function(req, res) {

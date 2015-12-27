@@ -13,6 +13,7 @@ var fieldSeed = require('./fieldSeed');
  * 用户数据信息
  */
 var player = function() {
+    /*
     this.openid = null;
     this.nickname = 'default';
     this.sex = null;
@@ -22,6 +23,11 @@ var player = function() {
     this.country = null;
     this.headimgurl = null;
     this.privilege = null;
+    */
+    this.id = undefined;
+    this.name = 'default';
+    this.pic = undefined;
+
     this.bag = {};
     this.fields = {};
     this.atk = 0;
@@ -32,6 +38,7 @@ var player = function() {
 };
 
 player.prototype.initFromDB = function(dbrecord) {
+    /*
     this.openid = dbrecord.openid;
     this.nickname = dbrecord.nickname;
     this.sex = dbrecord.sex;
@@ -41,6 +48,14 @@ player.prototype.initFromDB = function(dbrecord) {
     this.country = dbrecord.country;
     this.headimgurl = dbrecord.headimgurl;
     this.privilege = dbrecord.privilege;
+    */
+    this.id = dbrecord.id;
+    this.name = dbrecord.name;
+    this.pic = dbrecord.pic;
+};
+
+player.prototype.getLoginJson = function() {
+  return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields)});
 };
 
 player.prototype.initItem = function(dbrecord) {
@@ -64,8 +79,9 @@ player.prototype.initFromWeiXin = function(weixin) {
 };
 
 player.prototype.saveBaseinfo = function() {
-    var data = {openid:this.openid, nickname:this.nickname, sex:this.sex, language:this.language, city:this.city, province:this.province, country:this.country, headimgurl:this.headimgurl, privilege:this.privilege};
-    redisClient.updateKey(this.openid, JSON.stringify(data));
+    //var data = {openid:this.openid, nickname:this.nickname, sex:this.sex, language:this.language, city:this.city, province:this.province, country:this.country, headimgurl:this.headimgurl, privilege:this.privilege};
+    var data = {id:this.id, name:this.name, pic:this.pic};
+    redisClient.updateKey(this.id, JSON.stringify(data));
 };
 
 player.prototype.test = function() {

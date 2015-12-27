@@ -81,3 +81,14 @@ redis.hget = function(sType, sField, cb) {
         }
     });
 };
+
+redis.incr = function(sType, cb) {
+    redisDB.incr(sType, function(err, res) {
+        if (err != null) {
+            console.log('hget error: ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+        }
+    });
+};

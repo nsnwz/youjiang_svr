@@ -7,5 +7,10 @@
 
 module.exports = {
     GAME_NAME : "PLANT",
-    ITEM_ERROR : {}
+    OK : 0,
+    SYSTEM_ERROR : 500,
+    NOT_FIND_PALYER_ERROR : 501,
+    ITEM_ERROR : {
+        NOT_EXIST_ITEM : 1
+    }
 };
