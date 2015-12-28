@@ -27,7 +27,7 @@ var player = function() {
     this.id = undefined;
     this.name = 'default';
     this.pic = undefined;
-
+    this.attribute = {coins:0, diamonds:0, maxFieldNum : 6};
     this.bag = {};
     this.fields = {};
     this.atk = 0;
@@ -55,7 +55,7 @@ player.prototype.initFromDB = function(dbrecord) {
 };
 
 player.prototype.getLoginJson = function() {
-  return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields)});
+    return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute)});
 };
 
 player.prototype.initItem = function(dbrecord) {
@@ -64,6 +64,12 @@ player.prototype.initItem = function(dbrecord) {
 
 player.prototype.initFields = function(dbrecord) {
     this.fields = dbrecord;
+};
+
+player.prototype.initAttribute = function(dbrecord) {
+    for (var key in dbrecord) {
+        this.attribute[key] = dbrecord[key];
+    }
 };
 
 player.prototype.initFromWeiXin = function(weixin) {
@@ -101,20 +107,16 @@ player.prototype.reduceItem = function(nID, nNum) {
         return false;
     } else {
         this.bag[nID] -= nNum;
+        if (this.bag[nID] <= 0) {
+            delete this.bag[nID];
+        }
     }
     console.log(JSON.stringify(this.bag));
-    redisClient.hset(1000 + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
+    redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
     return true;
 };
 
 player.prototype.addItem = function(nID, nAmount) {
-    /*
-    var config = dataApi.item.findById(nID);
-    if (!!config == false) {
-       console.log('add item with config id is 0');
-        return false;
-    }
-    */
     if (!!this.bag[nID]) {
         console.log(this.bag[nID]);
         this.bag[nID] += nAmount;
@@ -124,7 +126,7 @@ player.prototype.addItem = function(nID, nAmount) {
         this.bag[nID] += nAmount;
     }
     console.log(JSON.stringify(this.bag));
-    redisClient.hset(1000 + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
+    redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
     return true;
 };
 
@@ -137,15 +139,33 @@ player.prototype.putSeed = function(nID, fieldID) {
         seed.idx = fieldID;
         this.fields[fieldID] = seed;
     //}
-    redisClient.hset(1000 + "PLANT", "fields", JSON.stringify(this.fields), null);
+    redisClient.hset(this.id + "PLANT", "fields", JSON.stringify(this.fields), null);
 };
 
 player.prototype.accelerateGrow = function(nID, fieldID) {
     var field = this.fields[fieldID];
     if (!!field) {
         field.addvaule += 2;
-        redisClient.hset(1000 + "PLANT", "fields", JSON.stringify(this.fields), null);
+        redisClient.hset(this.id + "PLANT", "fields", JSON.stringify(this.fields), null);
     }
 };
+
+player.prototype.checkCanPlant = function(fieldID) {
+    if (fieldID > this.attribute.maxFieldNum) {
+      return false;
+    }
+    if (this.fields.hasOwnProperty(fieldID) && this.fields[fieldID].itemID) {
+        return false;
+    }
+    return true;
+};
+
+player.prototype.saveFields = function() {
+    redisClient.hset(this.id + "PLANT", "fields", JSON.stringify(this.fields), null);
+};
+
+player.prototype.sendError = function(req, res, errorCode) {
+    res.end(JSON.stringify({cmdID:req.body.cmdID, ret : errorCode}));
+}
 
 module.exports = player;

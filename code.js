@@ -11,6 +11,6 @@ module.exports = {
     SYSTEM_ERROR : 500,
     NOT_FIND_PALYER_ERROR : 501,
     ITEM_ERROR : {
-        NOT_EXIST_ITEM : 1
+        NOT_EXIST_ITEM : 6000
     }
 };

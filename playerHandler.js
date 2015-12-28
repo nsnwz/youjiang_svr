@@ -10,7 +10,7 @@ var fightModel = require('./fight');
 var fightSystem = require('./fightSystem');
 var code = require("./code");
 var dataapi = require('./dataapi');
-var uuid = require('node-uuid');
+
 
 var playerHandler = module.exports;
 
@@ -45,7 +45,7 @@ playerHandler.getPlayerInfo = function(req, res) {
                     playerSystem.addPlayer(p);
                     console.log('get redis: ', redis);
                     console.log(p);
-                    redisClient.hget(1000 + code.GAME_NAME, "item", cb);
+                    redisClient.hget(p.id + code.GAME_NAME, "item", cb);
                 } else {
                     res.end(JSON.stringify({cmdID: req.body.cmdID, ret:code.NOT_FIND_PALYER_ERROR}));
                     return;
@@ -55,11 +55,17 @@ playerHandler.getPlayerInfo = function(req, res) {
                     p.initItem(JSON.parse(redis));
                     console.log(p.bag);
                 }
-                redisClient.hget(1000 + code.GAME_NAME, "fields", cb);
+                redisClient.hget(p.id + code.GAME_NAME, "fields", cb);
             }, function(redis, cb) {
                 if (redis != null) {
                     p.initFields(JSON.parse(redis));
                     console.log(p.fields);
+                }
+                redisClient.hget(p.id + code.GAME_NAME, "attribute", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    p.initAttribute(JSON.parse((redis)));
+                    console.log(p.attribute);
                 }
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
             }
@@ -76,27 +82,44 @@ playerHandler.addItem = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
-        res.end({ret:code.NOT_FIND_PALYER_ERROR});
+        p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
         return;
     }
-    if (!dataapi.seed.findById(params.item_id)) {
-        res.end({ret:code.ITEM_ERROR.NOT_EXIST_ITEM});
-        return;
+    for (var key in params) {
+        if (!dataapi.seed.findById(params.itemID)) {
+            console.log(params.itemID, " not exist");
+            p.sendError(req, res, code.ITEM_ERROR.NOT_EXIST_ITEM);
+            return;
+        }
+        p.addItem(params.itemID, params.count);
     }
-    p.addItem(req.body.item_id, params.count);
-    res.end({ret:code.OK});
+    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK}));
 };
 
-playerHandler.putSeed = function(req, res) {
-    console.log("put seed");
-    var p = new playerModel();
-    p.putSeed(10, 1);
-    return true;
-    var player = playerSystem.getPlayer(req.query.openid);
-    if (player != null) {
-        player.addItem(1000, 1);
+playerHandler.plant = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
+        return;
     }
-    console.log("put seed");
+    for (var key in params) {
+        if (!p.checkCanPlant(params[key])) {
+            p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
+            return;
+        }
+        if (p.getItemAmount[params[key]] < 0) {
+            p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
+            return;
+        }
+    }
+
+    for (var key in params) {
+        p.reduceItem(params[key], 1);
+        p.fields[params[key]] = {itemID:params[key], startTime:new Date().getSeconds(), growpValue:0};
+    }
+    p.saveFields();
+    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify(p.fields)}));
 };
 
 playerHandler.harvestSeed = function(req, res) {
