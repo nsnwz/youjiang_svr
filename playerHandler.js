@@ -86,12 +86,12 @@ playerHandler.addItem = function(req, res) {
         return;
     }
     for (var key in params) {
-        if (!dataapi.seed.findById(params.itemID)) {
+        if (!dataapi.seed.findById(parseInt(key))) {
             console.log(params.itemID, " not exist");
             p.sendError(req, res, code.ITEM_ERROR.NOT_EXIST_ITEM);
             return;
         }
-        p.addItem(params.itemID, params.count);
+        p.addItem(parseInt(key), params.count);
     }
     res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK}));
 };
@@ -104,7 +104,7 @@ playerHandler.plant = function(req, res) {
         return;
     }
     for (var key in params) {
-        if (!p.checkCanPlant(params[key])) {
+        if (!p.checkCanPlant(parseInt(key))) {
             p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
             return;
         }
@@ -116,7 +116,7 @@ playerHandler.plant = function(req, res) {
 
     for (var key in params) {
         p.reduceItem(params[key], 1);
-        p.fields[params[key]] = {itemID:params[key], startTime:new Date().getSeconds(), growpValue:0};
+        p.fields[parseInt(key)] = {itemID:params[key], startTime:new Date().getSeconds(), growpValue:0};
     }
     p.saveFields();
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify(p.fields)}));
