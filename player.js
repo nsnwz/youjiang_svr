@@ -27,9 +27,10 @@ var player = function() {
     this.id = undefined;
     this.name = 'default';
     this.pic = undefined;
-    this.attribute = {coins:0, diamonds:0, maxFieldNum : 6};
+    this.attribute = {coins:0, diamonds:0, maxFieldNum : 6, attack : 0};
     this.bag = {};
     this.fields = {};
+    this.fieldsAttribute = {};
     this.atk = 0;
     this.def = 0;
     this.skills = {};
@@ -139,14 +140,14 @@ player.prototype.putSeed = function(nID, fieldID) {
         seed.idx = fieldID;
         this.fields[fieldID] = seed;
     //}
-    redisClient.hset(this.id + "PLANT", "fields", JSON.stringify(this.fields), null);
+    redisClient.hset(this.id + code.GAME_NAME, "fields", JSON.stringify(this.fields), null);
 };
 
 player.prototype.accelerateGrow = function(nID, fieldID) {
     var field = this.fields[fieldID];
     if (!!field) {
         field.addvaule += 2;
-        redisClient.hset(this.id + "PLANT", "fields", JSON.stringify(this.fields), null);
+        redisClient.hset(this.id + code.GAME_NAME, "fields", JSON.stringify(this.fields), null);
     }
 };
 
@@ -161,7 +162,11 @@ player.prototype.checkCanPlant = function(fieldID) {
 };
 
 player.prototype.saveFields = function() {
-    redisClient.hset(this.id + "PLANT", "fields", JSON.stringify(this.fields), null);
+    redisClient.hset(this.id + code.GAME_NAME, "fields", JSON.stringify(this.fields), null);
+};
+
+player.prototype.saveAttribute = function() {
+    redisClient.hset(this.id + code.GAME_NAME, "attribute", JSON.stringify(this.attribute), null);
 };
 
 player.prototype.sendError = function(req, res, errorCode) {

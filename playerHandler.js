@@ -116,30 +116,62 @@ playerHandler.plant = function(req, res) {
 
     for (var key in params) {
         p.reduceItem(params[key], 1);
-        p.fields[parseInt(key)] = {itemID:params[key], startTime:new Date().getSeconds(), growpValue:0};
+        p.fields[parseInt(key)] = {itemID:params[key], startTime:new Date().getTime(), growpValue:0};
     }
     p.saveFields();
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify(p.fields)}));
 };
 
-playerHandler.harvestSeed = function(req, res) {
-
+playerHandler.harvest = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
+        return;
+    }
+    for (var key in params.fields) {
+        if (p.fields.hasOwnProperty(key)) {
+            var seed = dataapi.seed.findById(p.fields[key].itemID);
+            if (seed.harvest > p.fields[key].growpValue) {
+                p.sendError(req, res, code.PLANT.CANNOT_HARVEST);
+                return;
+            }
+        }
+    }
+    for (var key in params) {
+        var seed = dataapi.seed.findById(p.fields[key].itemID);
+        p.attribute.attack += seed.attack;
+        delete p.fields[key];
+    }
+    p.saveFields();
+    p.saveAttribute();
+    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify({fields : JSON.stringfy(p.fields), attribute : JSON.stringfy(p.attribute)})}));
 };
 
 playerHandler.getRank = function(req, res) {
-
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
+        return;
+    }
+    redisClient.zrevrange(code.GAME_NAME + params.rankName, params.startID, params.endID, function(err, res) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({fields : JSON.stringify(res)})}));
+    });
 };
 
-playerHandler.accelerateGrow = function(req, res) {
-    console.log("add item");
-    var p = new playerModel();
-   // p.addItem(1000, 1);
-    p.putSeed(10, 1);
-    return true;
-    var player = playerSystem.getPlayer(req.query.openid);
-    if (player != null) {
-        player.addItem(1000, 1);
+playerHandler.addGrowth = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
+        return;
     }
+    for (var key in p.fields) {
+        p.fields[key].growpValue += params.growpValue;
+    }
+    p.saveFields();
+    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK}));
 };
 
 playerHandler.enterFight = function(req, res) {

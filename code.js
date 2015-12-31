@@ -12,5 +12,8 @@ module.exports = {
     NOT_FIND_PALYER_ERROR : 501,
     ITEM_ERROR : {
         NOT_EXIST_ITEM : 6000
+    },
+    PLANT : {
+        CANNOT_HARVEST : 7000
     }
 };

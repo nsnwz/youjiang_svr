@@ -20,10 +20,34 @@ cmds = {
     1001 : playerHandler.addPlayer,
     /*
         CMD:种植
+        INPUT {fieldID : itemID, fieldID : itemID}
      */
     1002 : playerHandler.plant,
+    /*
+        CMD:增加物品
+     */
 
-    1003 : playerHandler.addItem
+    1003 : playerHandler.addItem,
+
+    /*
+        CMD 收获
+        INPUT {fields : []}
+        OUTPUT
+     */
+    1004 : playerHandler.harvest,
+
+    /*
+        CMD 获取排名
+        INPUT {rankNmae, startID, endID}
+     */
+    1005 : playerHandler.getRank,
+
+    /*
+        CMD 增加成长
+        INPUT {addValue}
+     */
+    1006 : playerHandler.addGrowth
+
 };
 
 module.exports = cmds;

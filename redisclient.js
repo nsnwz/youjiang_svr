@@ -92,3 +92,30 @@ redis.incr = function(sType, cb) {
         }
     });
 };
+
+redis.zadd = function(sType, score, member, cb) {
+    var args = [ sType, score, member];
+    console.log(sType, score, member);
+    redisDB.zadd(args, function(err, res) {
+        if (err != null) {
+            console.log('zadd error ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+            console.log("zadd ok!");
+        }
+    });
+};
+
+redis.zrevrange = function(sType, start, end, cb) {
+    var args = [sType, start, end, 'withscores'];
+    redisDB.zrevrange(args, function(err, res) {
+        if (err != null) {
+            console.log('zrevrange error ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+            console.log("zrevrange ok");
+        }
+    });
+};
