@@ -1,0 +1,146 @@
+{
+	"1": {
+		"sum": 1,
+		"type": 1,
+		"harvest": 100,
+		"reward": 10000000
+	},
+	"2": {
+		"sum": 2,
+		"type": 1,
+		"harvest": 1000,
+		"reward": 20000000
+	},
+	"3": {
+		"sum": 3,
+		"type": 1,
+		"harvest": 5000,
+		"reward": "1e/"
+	},
+	"4": {
+		"sum": 4,
+		"type": 1,
+		"harvest": 10000,
+		"reward": "2e/"
+	},
+	"5": {
+		"sum": 5,
+		"type": 1,
+		"harvest": 50000,
+		"reward": "10e/"
+	},
+	"6": {
+		"sum": 6,
+		"type": 1,
+		"harvest": 100000,
+		"reward": "20e/"
+	},
+	"7": {
+		"sum": 7,
+		"type": 2,
+		"harvest": 100,
+		"reward": 10000000
+	},
+	"8": {
+		"sum": 8,
+		"type": 2,
+		"harvest": 1000,
+		"reward": 20000000
+	},
+	"9": {
+		"sum": 9,
+		"type": 2,
+		"harvest": 5000,
+		"reward": "1e/"
+	},
+	"10": {
+		"sum": 10,
+		"type": 2,
+		"harvest": 10000,
+		"reward": "2e/"
+	},
+	"11": {
+		"sum": 11,
+		"type": 2,
+		"harvest": 50000,
+		"reward": "10e/"
+	},
+	"12": {
+		"sum": 12,
+		"type": 2,
+		"harvest": 100000,
+		"reward": "20e/"
+	},
+	"13": {
+		"sum": 13,
+		"type": 3,
+		"harvest": 100,
+		"reward": 10000000
+	},
+	"14": {
+		"sum": 14,
+		"type": 3,
+		"harvest": 1000,
+		"reward": 20000000
+	},
+	"15": {
+		"sum": 15,
+		"type": 3,
+		"harvest": 5000,
+		"reward": "1e/"
+	},
+	"16": {
+		"sum": 16,
+		"type": 3,
+		"harvest": 10000,
+		"reward": "2e/"
+	},
+	"17": {
+		"sum": 17,
+		"type": 3,
+		"harvest": 50000,
+		"reward": "10e/"
+	},
+	"18": {
+		"sum": 18,
+		"type": 3,
+		"harvest": 100000,
+		"reward": "20e/"
+	},
+	"19": {
+		"sum": 19,
+		"type": 4,
+		"harvest": 100,
+		"reward": 10000000
+	},
+	"20": {
+		"sum": 20,
+		"type": 4,
+		"harvest": 1000,
+		"reward": 20000000
+	},
+	"21": {
+		"sum": 21,
+		"type": 4,
+		"harvest": 5000,
+		"reward": "1e/"
+	},
+	"22": {
+		"sum": 22,
+		"type": 4,
+		"harvest": 10000,
+		"reward": "2e/"
+	},
+	"23": {
+		"sum": 23,
+		"type": 4,
+		"harvest": 50000,
+		"reward": "10e/"
+	},
+	"24": {
+		"sum": 24,
+		"type": 4,
+		"harvest": 100000,
+		"reward": "20e/"
+	}
+}

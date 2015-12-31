@@ -1,0 +1,11 @@
+{
+	"1": {
+		"refresh-2": 1,
+		"steal": 0.1,
+		"start": 3,
+		"refresh": 60,
+		"supplement": 5,
+		"sum": 1,
+		"buy": 3
+	}
+}

@@ -1,0 +1,26 @@
+{
+	"1": {
+		"type": 1,
+		"harvest": 36,
+		"reward": 3000000,
+		"sum": 1
+	},
+	"2": {
+		"type": 2,
+		"harvest": 36,
+		"reward": 3000000,
+		"sum": 2
+	},
+	"3": {
+		"type": 3,
+		"harvest": 36,
+		"reward": 3000000,
+		"sum": 3
+	},
+	"4": {
+		"type": 4,
+		"harvest": 36,
+		"reward": 3000000,
+		"sum": 4
+	}
+}
