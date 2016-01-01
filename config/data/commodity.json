@@ -1,0 +1,38 @@
+{
+	"600001": {
+		"id": 600001,
+		"isNew": 0,
+		"tip": null,
+		"moneyType": 1,
+		"discount": 0,
+		"price": 10,
+		"name": "种植技能1"
+	},
+	"600002": {
+		"id": 600002,
+		"isNew": 0,
+		"tip": null,
+		"moneyType": 1,
+		"discount": 0,
+		"price": 10,
+		"name": "种植技能2"
+	},
+	"600003": {
+		"id": 600003,
+		"isNew": 0,
+		"tip": null,
+		"moneyType": 1,
+		"discount": 0,
+		"price": 10,
+		"name": "种植技能3"
+	},
+	"600004": {
+		"id": 600004,
+		"isNew": 0,
+		"tip": "消耗30晶石增加5次",
+		"moneyType": 1,
+		"discount": 0,
+		"price": 30,
+		"name": "购买串门次数"
+	}
+}
