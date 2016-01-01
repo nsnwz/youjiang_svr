@@ -8,6 +8,7 @@ var redisClient = require('./redisclient');
 var code = require("./code");
 var dataapi = require('./dataapi');
 var fieldSeed = require('./fieldSeed');
+var item = require('./item');
 
 /**
  * 用户数据信息
@@ -27,15 +28,15 @@ var player = function() {
     this.id = undefined;
     this.name = 'default';
     this.pic = undefined;
-    this.attribute = {coins:0, diamonds:0, maxFieldNum : 6, attack : 0};
+    this.attribute = {coins:0, totalCoins : 0, diamonds:0, maxFieldNum : 1, attack : 300, def : 200, hp : 900, fightTime : 1000, finishTask : 0,
+                        buyStealNumLeft : 0, FreeStealNumUsed : 0, powerUsed : 0, cleanDayTime : 0};
     this.bag = {};
     this.fields = {};
-    this.fieldsAttribute = {};
-    this.atk = 0;
-    this.def = 0;
-    this.skills = {};
-    this.session = null;
-    this.fightID = 0;
+    this.fieldsAttribute = {600001 : 0, 600002 : 0, 600003 : 0, fieldsLevel : 1};
+    this.skills = {10001 : {lv : 1, selected : false}, 10002 : {lv : 1, selected:false}, 1003 : {lv : 1, selected : true}, 20001 : {useTimes : 0}, 20002 : {useTimes : 0}};
+    this.session = undefined;
+    this.fightInfo = {};
+    this.dailyValue = {};
 };
 
 player.prototype.initFromDB = function(dbrecord) {
@@ -56,7 +57,9 @@ player.prototype.initFromDB = function(dbrecord) {
 };
 
 player.prototype.getLoginJson = function() {
-    return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute)});
+    var nowTime = new Date().getTime();
+    return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
+    fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime});
 };
 
 player.prototype.initItem = function(dbrecord) {
@@ -113,7 +116,7 @@ player.prototype.reduceItem = function(nID, nNum) {
         }
     }
     console.log(JSON.stringify(this.bag));
-    redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
+    //redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
     return true;
 };
 
@@ -127,32 +130,34 @@ player.prototype.addItem = function(nID, nAmount) {
         this.bag[nID] += nAmount;
     }
     console.log(JSON.stringify(this.bag));
-    redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
     return true;
 };
 
-player.prototype.putSeed = function(nID, fieldID) {
-    //if (this.reduceItem(nID, 1)) {
-        var seed = new fieldSeed();
-        seed.itemId = nID;
-        //seed.starttime = date.getTime();
-        seed.starttime = 1000;
-        seed.idx = fieldID;
-        this.fields[fieldID] = seed;
-    //}
-    redisClient.hset(this.id + code.GAME_NAME, "fields", JSON.stringify(this.fields), null);
+player.prototype.saveItem = function() {
+    redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
 };
 
-player.prototype.accelerateGrow = function(nID, fieldID) {
-    var field = this.fields[fieldID];
-    if (!!field) {
-        field.addvaule += 2;
-        redisClient.hset(this.id + code.GAME_NAME, "fields", JSON.stringify(this.fields), null);
+player.prototype.reduceCoins = function(num) {
+    if (this.attribute.coins > num) {
+        this.attribute.coins -= num;
+        return true;
+    } else {
+        console.log("coins not enough");
+        return false;
+    }
+};
+
+player.prototype.reduceDiamonds = function(num) {
+    if (this.attribute.diamonds > num) {
+        this.attribute.diamonds -= num;
+        return true;
+    } else {
+        return false;
     }
 };
 
 player.prototype.checkCanPlant = function(fieldID) {
-    if (fieldID > this.attribute.maxFieldNum) {
+    if (fieldID > this.attribute.maxFieldNum * 6) {
       return false;
     }
     if (this.fields.hasOwnProperty(fieldID) && this.fields[fieldID].itemID) {
@@ -169,8 +174,65 @@ player.prototype.saveAttribute = function() {
     redisClient.hset(this.id + code.GAME_NAME, "attribute", JSON.stringify(this.attribute), null);
 };
 
+player.prototype.saveFieldsAttribute = function() {
+    redisClient.hset(this.id + code.GAME_NAME, "fieldsAttribute", JSON.stringify(this.fieldsAttribute), null);
+};
+
 player.prototype.sendError = function(req, res, errorCode) {
     res.end(JSON.stringify({cmdID:req.body.cmdID, ret : errorCode}));
+};
+
+player.prototype.dealSeedOffline = function() {
+    var now = new Date().getTime();
+    for (var key in this.fields) {
+        if (this.fields[key].updateTime < now) {
+            this.fields[key].growth += now - this.fields[key].updateTime;
+        }
+        if (this.fields[key].growth > item.getSeedTotalValue(this.fields[key].itemID)) {
+            this.fields[key].growth = item.getSeedTotalValue(this.fields[key].itemID);
+        }
+    }
+    this.saveFields();
+};
+
+player.prototype.setSkillSelected = function(skillID) {
+    for (var key in this.skills) {
+        if (this.skills[key].hasOwnProperty('selected')) {
+            if (key == skillID) {
+                this.skills[key].selected = true;
+            } else {
+                this.skills[key].selected = false;
+            }
+        }
+    }
+};
+
+player.prototype.saveSkills = function() {
+    redisClient.hset(this.id + code.GAME_NAME, "skills", JSON.stringify(this.skills), null);
+};
+
+player.prototype.checkSkillCanLevelUp = function(skillID) {
+        if (this.skills.hasOwnProperty(skillID)) {
+            if (this.skills[skillID].hasOwnProperty('lv')) {
+                return true;
+            }
+        }
+        return  false;
 }
+
+player.prototype.upSkillLevel = function(skillID) {
+    this.skills[skillID].lv++;
+};
+
+player.prototype.dealDayValue = function() {
+    var date = new Date();
+    var today = date.getFullYear() * 10000 + (date.getMonth()  + 1) * 100 + date.getDate();
+    if (this.attribute.cleanDayTime != today) {
+        this.attribute.FreeStealNumUsed  = 0;
+        this.attribute.powerUsed = 0;
+        this.attribute.cleanDayTime = today;
+    }
+    this.saveAttribute();
+};
 
 module.exports = player;

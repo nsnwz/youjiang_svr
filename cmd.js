@@ -21,32 +21,70 @@ cmds = {
     /*
         CMD:种植
         INPUT {fieldID : itemID, fieldID : itemID}
+        OUTPUT {fieldID : {itemID, startTime, growth, updateTime}, ...}
      */
     1002 : playerHandler.plant,
     /*
         CMD:增加物品
+        INPUT {itemID : count, itemID : count, ....}
      */
-
-    1003 : playerHandler.addItem,
-
+    1003 : playerHandler.buyItem,
     /*
         CMD 收获
-        INPUT {fields : []}
-        OUTPUT
+        INPUT {fields : [fieldID, fieldID, ...]}
+        OUTPUT {fields, p.attribute}
      */
     1004 : playerHandler.harvest,
-
     /*
         CMD 获取排名
         INPUT {rankNmae, startID, endID}
+        OUTPUT [member, score, ...]
      */
     1005 : playerHandler.getRank,
-
     /*
         CMD 增加成长
         INPUT {addValue}
+        OUTPUT {fields :{itemID, startTime, growth, updateTime}, ...}
      */
-    1006 : playerHandler.addGrowth
+    1006 : playerHandler.addGrowth,
+    /*
+        CMD 购买加速成长
+        INPUT {600001 : times, 600002 : times, 600003 : times}
+     */
+    1007 : playerHandler.buyAccelerateGrowth,
+    /*
+        CMD 进入战斗
+     */
+    1008 : playerHandler.enterFight,
+    /*
+        CMD 选择技能
+        INPUT {selectedSKillID:}
+     */
+    1009 : playerHandler.selectSkill,
+    /*
+        CMD 校验战斗
+     */
+    1010 : playerHandler.checkFight,
+    /*
+        CMD 获取背包
+        OUTPUT {itemID : count, itemID : count}
+     */
+    1011 : playerHandler.getBag,
+    /*
+        CMD 购买土地
+        INPUT
+     */
+    1012 : playerHandler.buyFields,
+    /*
+        CMD 土地升级
+     */
+    1013 : playerHandler.upFieldLevel,
+    /*
+        CMD 技能升级
+        INPUT {skillID:}
+     */
+    1014 : playerHandler.upSkillLevel
+
 
 };
 

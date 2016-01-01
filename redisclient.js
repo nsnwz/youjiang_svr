@@ -119,3 +119,16 @@ redis.zrevrange = function(sType, start, end, cb) {
         }
     });
 };
+
+redis.zincrby = function(sType, increment, member, cb) {
+    var args = [sType, increment, member];
+    redisDB.zincrby(args, function(err, res) {
+        if (err != null) {
+            console.log('zincrby error ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+            console.log("zincrby ok");
+        }
+    });
+};

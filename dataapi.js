@@ -5,6 +5,8 @@
 // require json files
 var fs = require('fs');
 var seed = require('./config/data/seed');
+var other = require('./config/data/other');
+var commodity = require('./config/data/commodity');
 
 /**
  * Data model `new Data()`
@@ -33,7 +35,6 @@ var Data = function(data,sFileName) {
     this.data = data;
     //this.length = length;
     this.filename= sFileName;
-
 };
 
 /**
@@ -108,6 +109,8 @@ Data.prototype.findSmaller = function(attr, value) {
  * @api public
  */
 Data.prototype.findById = function(id) {
+    console.log(id);
+    console.log(this.data);
     return this.data[id];
 };
 
@@ -164,5 +167,7 @@ Data.prototype.reload = function(){
 */
 
 module.exports = {
-    seed : new Data(seed,'seed')
+    seed : new Data(seed,'seed'),
+    other : new Data(other, 'other'),
+    commodity : new Data(commodity, 'commodity')
 };
