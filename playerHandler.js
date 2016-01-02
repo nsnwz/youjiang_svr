@@ -6,11 +6,11 @@ var playerSystem = require('./playerSystem');
 var playerModel = require('./player');
 var redisClient = require('./redisclient');
 var async = require('async');
-var fightModel = require('./fight');
-var fightSystem = require('./fightSystem');
 var code = require("./code");
 var dataapi = require('./dataapi');
 var item = require('./item');
+var calc = require('./calc');
+var skill = require('./skill');
 
 
 var playerHandler = module.exports;
@@ -568,8 +568,19 @@ playerHandler.enterFight = function(req, res) {
         p.sendError(req, res, code.TASK.HAVE_NOT_FIN_PRE_TASK);
         return;
     }
+    var elem = dataapi.storyFight.findById(params.id)
+    if (elem == null) {
+        p.sendError(req, res, code.TASK.TASK_NOT_EXIST);
+        return;
+    }
     p.fightInfo.id = params.id;
     p.fightInfo.startTime = new Date().getTime();
+    p.fightInfo.playerInitHp = p.fightInfo.posLeftHp = p.hp;
+    p.fightInfo.playerInitAtk = p.fightInfo.posLeftAtk = p.atk;
+    p.fightInfo.playerInitDef  = p.fightInfo.posLeftDef = p.def;
+    p.fightInfo.bossInitHp = p.fightInfo.posRightHp = elem.blood;
+    p.fightInfo.bossInitAtk = p.fightInfo.posRightAtk = elem.atk;
+    p.fightInfo.bossInitDef = p.fightInfo.posRightDef = elem.defence;
     p.sendError(req, res, code.OK);
 };
 
@@ -577,21 +588,22 @@ playerHandler.useSkill = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
-        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     if (params == 1) {
-        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK}));
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
+    } else {
+        if (!p.checkCanUseSkill(params.id)) {
+            res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.SKILL.NOT_RIGHT_USE_SKILL}));
+            return;
+        }
+        p.fightInfo.playerUseSkills[params.id] += 1;
+        p.reduceSkillUseTimes(params.id);
+        p.saveSkills();
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
     }
-    if (!p.checkCanUseSkill(params.id)) {
-        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SKILL.NOT_RIGHT_USE_SKILL}));
-        return;
-    }
-    p.fightInfo[params.id] += 1;
-    p.reduceSkillUseTimes(params.id);
-    p.saveSkills();
-    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK}));
 };
 
 /*
@@ -605,16 +617,47 @@ playerHandler.checkFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
+    var elem = dataapi.storyFight.findById(p.fightInfo.id);
     for (var key in params.fight) {
         var type = params.fight[key][0];
         var pos = params.fight[key][1];
         var damage = params.fight[key][2];
-        if (type == 0) { //伤害包
+        var crit = params.fight[key][3];
+        var updateTime = params.fight[key][4];
+        if (fight[key][0] == 0) { //伤害包
+            var descHp = 0;
             if (pos == 0) {//用户受伤
-
+                descHp = calc.monsterToPlayerDamage(p.fightInfo.posRightAtk, p.fightInfo.posLeftDef, p.fightInfo.playerNotHurtState);
             } else if (pos == 1) {// boss受伤
-
+                descHp = calc.playerToMonsterDamage(p.fightInfo.posLeftAtk, p.fightInfo.posRightDef, p.fightInfo.bossNotHurtState);
             }
+            if (pos == 0) { //用户伤害
+                if (damage < descHp * 1.2) {
+                    consoel.log(" fight check error");
+                } else {
+                    p.fightInfo.posLeftHp -= damage;
+                }
+            } else { //BOSS伤害
+                if (damage > descHp * 1.2) {
+                    console.log('fight check error');
+                } else {
+                    p.fightInfo.posRightHp -= damage;
+                }
+            }
+        } else if (type == 1) {//技能
+            if (pos == 0) {//用户使用技能
+                skill[damage](pos, p.getSkillLv(damage), p.fightInfo, updateTime);
+            } else { //BOSS使用技能
+                skill[damage](pos, 1, p.fightInfo, updateTime);
+            }
+
         }
+        p.updateFightNoHurt(updateTime);
+   }
+    var nowTime = new Date().getTime();
+    if (p.fightInfo.posRightHp < p.fightInfo.bossInitHp * 0.1 && nowTime - p.fightInfo.startTime < 70) {
+        console.log('succ');
+    } else {
+        console.log('fail');
     }
 };

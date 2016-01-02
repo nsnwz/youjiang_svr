@@ -33,7 +33,7 @@ var player = function() {
                         totalCoins : 0, //累加获取的钱的总数
                         diamonds:0, //钻石数目
                         maxFieldNum : 1, //田块数目
-                        attack : 300, //攻击
+                        atk : 300, //攻击
                         def : 200, //防御
                         hp : 900, //血量
                         fightTime : 1000, //攻击时间间隔
@@ -61,7 +61,28 @@ var player = function() {
     this.session = undefined;
     this.fightInfo = {
                          id :0,
-                         startTime : 0
+                         startTime : 0,
+                         playerInitHp : 0,
+                         bossInitHp : 0,
+                         playerInitAtk : 0,
+                         bossInitAtk : 0,
+                         playerInitDef : 0,
+                         bossInitDef : 0,
+                         posRightAtk : 0,
+                         posRightDef : 0,
+                         posRightHp : 0,
+                         posLeftAtk : 0,
+                         posLeftDef : 0,
+                         posLeftHp : 0,
+                         playerUseSkills : {},
+                         bossUseSkills : {},
+                         playerNotHurtState : 0,
+                         bossNotHurtState : 0,
+                         playerNotHurtTime : 0,
+                         bossNotHurtTime : 0,
+                         player20Hurt : 0,
+                         boss20Hurt : 0,
+
                         };
     this.dailyValue = {};
     this.stealInfo = [];
@@ -249,6 +270,15 @@ player.prototype.checkSkillCanLevelUp = function(skillID) {
         return  false;
 }
 
+player.prototype.getSkillLv = function(skillID) {
+    if (this.skills.hasOwnProperty(skillID)) {
+        if (this.skills[skillID].hasOwnProperty('lv')) {
+            return this.skills[skillID].lv;
+        }
+    }
+    return  1;
+}
+
 player.prototype.upSkillLevel = function(skillID) {
     this.skills[skillID].lv++;
 };
@@ -324,6 +354,17 @@ player.prototype.reduceSkillUseTimes = function(id) {
             && this.skills[key].hasOwnProperty('selected') && this.skills[key].selected) {
             this.skills[key].useTimes -= 1;
         }
+    }
+};
+
+player.prototype.updateFightNoHurt = function(updateTime) {
+    if (this.fightInfo.playerNotHurtTime < updateTime && updateTime - this.fightInfo.playerNotHurtTime > 7) {
+        this.fightInfo.playerNotHurtState = 0;
+        this.fightInfo.playerNotHurtTime = 0;
+    }
+    if (this.fightInfo.bossNotHurtTime < updateTime && updateTime - this.fightInfo.bossNotHurtTime > 7) {
+        this.fightInfo.bossNotHurtState = 0;
+        this.fightInfo.bossNotHurtTime = 0;
     }
 };
 

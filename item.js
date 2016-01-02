@@ -40,3 +40,13 @@ item.getSkillLevelUpCost = function(curLevel) {
     }
     return 0;
 };
+
+item.getSkillAddValue = function(lv) {
+    var elem = dataapi.other.findById('skill1UpLevelUpVal');
+    var values = elem.val.split('/');
+    if (lv <= values.length) {
+        return values[lv -1];
+    } else {
+        return 0;
+    }
+};

@@ -28,7 +28,8 @@ module.exports = {
         RANK_ERROR : 8000
     },
     TASK : {
-      HAVE_NOT_FIN_PRE_TASK : 9000
+      HAVE_NOT_FIN_PRE_TASK : 9000,
+      TASK_NOT_EXIST : 9001
     },
     SKILL : {
       NOT_RIGHT_USE_SKILL : 10000
