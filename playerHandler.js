@@ -657,6 +657,7 @@ playerHandler.checkFight = function(req, res) {
     var nowTime = new Date().getTime();
     if (p.fightInfo.posRightHp < p.fightInfo.bossInitHp * 0.1 && nowTime - p.fightInfo.startTime < 70) {
         console.log('succ');
+        p.clearFightInfo();
     } else {
         console.log('fail');
     }

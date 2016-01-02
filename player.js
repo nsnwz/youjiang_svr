@@ -82,7 +82,6 @@ var player = function() {
                          bossNotHurtTime : 0,
                          player20Hurt : 0,
                          boss20Hurt : 0,
-
                         };
     this.dailyValue = {};
     this.stealInfo = [];
@@ -366,6 +365,33 @@ player.prototype.updateFightNoHurt = function(updateTime) {
         this.fightInfo.bossNotHurtState = 0;
         this.fightInfo.bossNotHurtTime = 0;
     }
+};
+
+player.prototype.clearFightInfo = function () {
+    /*
+        this.fightInfo.id  = 0;
+        startTime : 0,
+        playerInitHp : 0,
+        bossInitHp : 0,
+        playerInitAtk : 0,
+        bossInitAtk : 0,
+        playerInitDef : 0,
+        bossInitDef : 0,
+        posRightAtk : 0,
+        posRightDef : 0,
+        posRightHp : 0,
+        posLeftAtk : 0,
+        posLeftDef : 0,
+        posLeftHp : 0,
+        playerUseSkills : {},
+    bossUseSkills : {},
+    playerNotHurtState : 0,
+        bossNotHurtState : 0,
+        playerNotHurtTime : 0,
+        bossNotHurtTime : 0,
+        player20Hurt : 0,
+        boss20Hurt : 0,
+        */
 };
 
 module.exports = player;
