@@ -594,6 +594,10 @@ playerHandler.useSkill = function(req, res) {
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK}));
 };
 
+/*
+    人对BOSS ： 基础伤害 (攻击 - 防御) , 暴击 (攻击 - 防御) * 1.5
+    BOSS对人:  基础伤害 (攻击- 防御), 暴击 攻击 * 1.5 - 防御
+ */
 playerHandler.checkFight = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
@@ -607,6 +611,8 @@ playerHandler.checkFight = function(req, res) {
         var damage = params.fight[key][2];
         if (type == 0) { //伤害包
             if (pos == 0) {//用户受伤
+
+            } else if (pos == 1) {// boss受伤
 
             }
         }
