@@ -7,7 +7,7 @@ var fs = require('fs');
 var seed = require('./config/data/seed');
 var other = require('./config/data/other');
 var commodity = require('./config/data/commodity');
-
+var storyFight = require('./config/data/storyFight');
 /**
  * Data model `new Data()`
  *
@@ -169,5 +169,7 @@ Data.prototype.reload = function(){
 module.exports = {
     seed : new Data(seed,'seed'),
     other : new Data(other, 'other'),
-    commodity : new Data(commodity, 'commodity')
+    commodity : new Data(commodity, 'commodity'),
+    storyFight : new Data(storyFight, 'storyFight')
+
 };

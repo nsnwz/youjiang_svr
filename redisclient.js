@@ -132,3 +132,27 @@ redis.zincrby = function(sType, increment, member, cb) {
         }
     });
 };
+
+redis.zrevrank = function(sType, member, cb) {
+    redisDB.zrevrank(sType, member, function(err, res) {
+        if (err != null) {
+            console.log('zincrby error ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+            console.log("zincrby ok");
+        }
+    });
+};
+
+redis.zcount = function(sType, min, max, cb) {
+    redisDB.zcount(sType, min, max, function(err, res) {
+        if (err != null) {
+            console.log('zincrby error ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+            console.log("zincrby ok");
+        }
+    });
+};

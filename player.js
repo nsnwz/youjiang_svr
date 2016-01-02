@@ -28,15 +28,44 @@ var player = function() {
     this.id = undefined;
     this.name = 'default';
     this.pic = undefined;
-    this.attribute = {coins:0, totalCoins : 0, diamonds:0, maxFieldNum : 1, attack : 300, def : 200, hp : 900, fightTime : 1000, finishTask : 0,
-                        buyStealNumLeft : 0, FreeStealNumUsed : 0, powerUsed : 0, cleanDayTime : 0};
-    this.bag = {};
-    this.fields = {};
-    this.fieldsAttribute = {600001 : 0, 600002 : 0, 600003 : 0, fieldsLevel : 1};
-    this.skills = {10001 : {lv : 1, selected : false}, 10002 : {lv : 1, selected:false}, 1003 : {lv : 1, selected : true}, 20001 : {useTimes : 0}, 20002 : {useTimes : 0}};
+    this.attribute = {
+                        coins:0, //钱数
+                        totalCoins : 0, //累加获取的钱的总数
+                        diamonds:0, //钻石数目
+                        maxFieldNum : 1, //田块数目
+                        attack : 300, //攻击
+                        def : 200, //防御
+                        hp : 900, //血量
+                        fightTime : 1000, //攻击时间间隔
+                        finishTask : 0, //完成的任务数目
+                        buyStealNumLeft : 0, //购买的偷的次数
+                        freeStealNumUsed : 0, //免费的偷的次数
+                        powerUsed : 0, //已经使用的活力值数目
+                        cleanDayTime : 0 //上次清理每日数据的时间
+                       };
+    this.bag = {}; //背包
+    this.fields = {}; //田块种植信息
+    this.fieldsAttribute = {
+                                600001 : 0, //田块种植技能1，value为持续的到期时间
+                                600002 : 0, //田块种植技能2，value为持续的到期时间
+                                600003 : 0, //田块种植技能3，value为持续的到期时间
+                                fieldsLevel : 1 //拥有的总的田块数目
+                               };
+    this.skills = {
+                     10001 : {lv : 1, selected : false}, //战斗技能
+                     10002 : {lv : 1, selected : false},
+                     10003 : {lv : 1, selected : true},
+                     20001 : {useTimes : 0, selected : false},
+                     20002 : {useTimes : 0, selected : true}
+                   };
     this.session = undefined;
-    this.fightInfo = {};
+    this.fightInfo = {
+                         id :0,
+                         startTime : 0
+                        };
     this.dailyValue = {};
+    this.stealInfo = [];
+    this.stealMePlayers = [];
 };
 
 player.prototype.initFromDB = function(dbrecord) {
@@ -233,6 +262,69 @@ player.prototype.dealDayValue = function() {
         this.attribute.cleanDayTime = today;
     }
     this.saveAttribute();
+};
+
+player.prototype.saveStealInfo = function() {
+    redisClient.hset(this.id + code.GAME_NAME, "stealInfo", JSON.stringify(this.stealInfo), null);
+};
+
+player.prototype.checkStealNum = function() {
+    var freeStealNumLeft = this.attribute.freeStealNumUsed > code.MAX_FREE_STEAL_NUM ? 0 : code.MAX_FREE_STEAL_NUM - this.attribute.freeStealNumUsed;
+    if (this.attribute.buyStealNumLeft + freeStealNumLeft > 0) {
+        return true;
+    }
+    return false ;
+};
+
+player.prototype.reduceStealNum = function() {
+    var freeStealNumLeft = this.attribute.freeStealNumUsed > code.MAX_FREE_STEAL_NUM ? 0 : code.MAX_FREE_STEAL_NUM - this.attribute.freeStealNumUsed;
+    if (freeStealNumLeft > 0) {
+        this.attribute.freeStealNumUsed += 1;
+        return;
+    } else {
+        if (this.attribute.buyStealNumLeft > 0) {
+            this.attribute.buyStealNumLeft -= 1;
+            return;
+        }
+    }
+};
+
+player.prototype.checkStealID = function(id) {
+    console.log("stealInfo ", this.stealInfo);
+    for (var key in this.stealInfo) {
+        if (this.stealInfo[key] == id && key % 2 == 0) {
+            return true;
+        }
+    }
+    return false;
+};
+
+player.prototype.clearNearPlayersInfo = function() {
+    this.stealInfo.length = 0;
+};
+
+player.prototype.addCoins = function(addNum) {
+    this.attribute.coins += addNum;
+    this.attribute.totalCoins += addNum;
+};
+
+player.prototype.checkCanUseSkill = function (id) {
+    for (var key in this.skills) {
+        if (id == key && this.skills[key].hasOwnProperty('useTimes') && this.skills[key].useTimes > 0
+            && this.skills[key].hasOwnProperty('selected') && this.skills[key].selected) {
+            return true;
+        }
+    }
+    return false;
+};
+
+player.prototype.reduceSkillUseTimes = function(id) {
+    for (var key in this.skills) {
+        if (id == key && this.skills[key].hasOwnProperty('useTimes') && this.skills[key].useTimes > 0
+            && this.skills[key].hasOwnProperty('selected') && this.skills[key].selected) {
+            this.skills[key].useTimes -= 1;
+        }
+    }
 };
 
 module.exports = player;

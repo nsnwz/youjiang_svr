@@ -20,6 +20,18 @@ module.exports = {
         FIELD_CANNOT_PLANT : 7001,
         NOT_HAVE_ITEM_IN_FIELD : 7002,
         HAVE_GOT_MAX_FIELDS : 7003,
-        HAVE_GOT_MAX_LEVEL : 7004
-    }
+        HAVE_GOT_MAX_LEVEL : 7004,
+        NOT_ENOUGH_STEAL_NUM : 7005,
+        ID_NOT_IN_STEAL_RANK : 7006
+    },
+    RANK : {
+        RANK_ERROR : 8000
+    },
+    TASK : {
+      HAVE_NOT_FIN_PRE_TASK : 9000
+    },
+    SKILL : {
+      NOT_RIGHT_USE_SKILL : 10000
+    },
+    MAX_FREE_STEAL_NUM : 5
 };

@@ -54,6 +54,7 @@ cmds = {
     1007 : playerHandler.buyAccelerateGrowth,
     /*
         CMD 进入战斗
+        INPUT {id : }
      */
     1008 : playerHandler.enterFight,
     /*
@@ -63,6 +64,8 @@ cmds = {
     1009 : playerHandler.selectSkill,
     /*
         CMD 校验战斗
+        INPUT [fight : {[type, pos, damage] ...}]
+        type 0为伤害， 1为技能
      */
     1010 : playerHandler.checkFight,
     /*
@@ -83,8 +86,40 @@ cmds = {
         CMD 技能升级
         INPUT {skillID:}
      */
-    1014 : playerHandler.upSkillLevel
-
+    1014 : playerHandler.upSkillLevel,
+    /*
+        CMD 获取服务器时间
+     */
+    1015 : playerHandler.getServerTime,
+    /*
+        CMD 获取用户信息
+        INPUT {uids : [id, id, ...]}
+     */
+    1016 : playerHandler.getSeveralPlayersInfo,
+    /*
+        CMD 获取排行榜附近的用户
+        INPUT {rankName}
+     */
+    1017 : playerHandler.getRankNearPlayers,
+    /*
+        CMD 偷
+        INPUT {id : }
+     */
+    1018 : playerHandler.steal,
+    /*
+        CMD 获取偷取记录
+     */
+    1019 : playerHandler.getStealMePlayers,
+    /*
+        CMD 获取用户PLANT中的成熟粽子
+        INPUT {id:}
+     */
+    1020 : playerHandler.getPlayerMatureSeed,
+    /*
+        CMD 使用技能
+        INPUT {pos, skillID}
+     */
+    1021 : playerHandler.useSkill
 
 };
 

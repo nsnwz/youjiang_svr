@@ -1,0 +1,82 @@
+{
+	"28001": {
+		"moneyType": 0,
+		"seed4": 0.1,
+		"seed5": 0.01,
+		"buy": 200000,
+		"type": 2,
+		"id": 28001,
+		"seed2": 0.15,
+		"seed3": 0.74
+	},
+	"38002": {
+		"moneyType": 1,
+		"seed4": 0.83,
+		"seed5": 0.07,
+		"buy": 20,
+		"type": 3,
+		"id": 38002,
+		"seed2": null,
+		"seed3": 0.1
+	},
+	"28002": {
+		"moneyType": 1,
+		"seed4": 0.83,
+		"seed5": 0.07,
+		"buy": 20,
+		"type": 2,
+		"id": 28002,
+		"seed2": null,
+		"seed3": 0.1
+	},
+	"48001": {
+		"moneyType": 0,
+		"seed4": 0.1,
+		"seed5": 0.01,
+		"buy": 200000,
+		"type": 4,
+		"id": 48001,
+		"seed2": 0.15,
+		"seed3": 0.74
+	},
+	"18001": {
+		"moneyType": 0,
+		"seed4": 0.1,
+		"seed5": 0.01,
+		"buy": 200000,
+		"type": 1,
+		"id": 18001,
+		"seed2": 0.15,
+		"seed3": 0.74
+	},
+	"18002": {
+		"moneyType": 1,
+		"seed4": 0.83,
+		"seed5": 0.07,
+		"buy": 20,
+		"type": 1,
+		"id": 18002,
+		"seed2": null,
+		"seed3": 0.1
+	},
+	"38001": {
+		"moneyType": 0,
+		"seed4": 0.1,
+		"seed5": 0.01,
+		"buy": 200000,
+		"type": 3,
+		"id": 38001,
+		"seed2": 0.15,
+		"seed3": 0.74
+	},
+	"48002": {
+		"moneyType": 1,
+		"seed4": 0.83,
+		"seed5": 0.07,
+		"buy": 20,
+		"type": 4,
+		"id": 48002,
+		"seed2": null,
+		"seed3": 0.1
+	}
+}
