@@ -45,7 +45,13 @@ var player = function() {
                         buyPowerNum : 0, //购买的活力点
                         cleanDayTime : 0, //上次清理每日数据的时间
                         bossFightHp : -1, //挑战模式用户保留的血量，-1表示需要初始化为初始血量(每天清除)
-                        starNum : 0 //战斗星级
+                        starNum : 0, //战斗星级
+                        mood : 0, //心情 (初始值需要每天清除)
+                        onlineTime : 0, //在线时长(每天清除)
+                        onlineUpdateTime : 0, //在线时长更新时间(登入额时候设置为登入时间)
+                        lastDoneRandEventOlTime : 0, //上次昨晚随机事件的在线时长(每天清除)
+                        randEventTimes : 0, //随机事件的次数(每天清除)
+                        randEventID : 0, //随机到的事件(每天清除)
                        };
     this.bag = {}; //背包
     this.fields = {}; //田块种植信息
@@ -92,6 +98,7 @@ var player = function() {
     this.dailyValue = {};
     this.stealInfo = [];
     this.stealMePlayers = [];
+    this.cliSetData = {};//登入拉取
 };
 
 player.prototype.initFromDB = function(dbrecord) {
