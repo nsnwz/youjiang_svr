@@ -2,9 +2,9 @@
  * Created by carl on 2016/1/2.
  */
 
-var calc = module.exportsl;
+var calc = module.exports
 
-calc.playerToMonsterDamage = function(playerAtk, bossDef ,crit, bossHp, fightInfo) {
+calc.playerToMonsterDamage = function(playerAtk, bossDef ,crit, fightInfo) {
     var damage = 0;
     if (crit) {
         damage = (playerAtk - bossDef) * 1.5;
@@ -16,26 +16,26 @@ calc.playerToMonsterDamage = function(playerAtk, bossDef ,crit, bossHp, fightInf
     } else {
         if (fightInfo.player20Hurt) {
             fightInfo.player20Hurt = 0;
-            return bossInitHp * 0.2;
+            return fightInfo.bossInitHp * 0.2;
         } else {
             return (damage < 0 ? 0 : damage);
         }
     }
 };
 
-calc.monsterToPlayerDamage = function(bossAtk, playerDef, crit, playerHp, fightInfo) {
+calc.monsterToPlayerDamage = function(bossAtk, playerDef, crit, fightInfo) {
     var damage = 0;
     if (crit) {
         damage = bossAtk * 1.5 - playerDef;
     }  else {
-        damage = bossAtk = playerDef;
+        damage = bossAtk - playerDef;
     }
-    if (notHurtState) {
+    if (fightInfo.playerNotHurtState) {
         return 0;
     } else {
         if (fightInfo.boss20Hurt) {
             fightInfo.boss20Hurt = 0;
-            return playerHp * 0.2;
+            return fightInfo.playerInitHp * 0.2;
         } else {
             return (damage < 0 ? 0 : damage);
         }

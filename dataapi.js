@@ -5,9 +5,11 @@
 // require json files
 var fs = require('fs');
 var seed = require('./config/data/seed');
-var other = require('./config/data/other');
+var other = require('./config/data/smallConfig');
 var commodity = require('./config/data/commodity');
 var storyFight = require('./config/data/storyFight');
+var seedRandom = require('./config/data/seedRandom');
+var shopList = require('./config/data/shopList');
 /**
  * Data model `new Data()`
  *
@@ -168,8 +170,10 @@ Data.prototype.reload = function(){
 
 module.exports = {
     seed : new Data(seed,'seed'),
-    other : new Data(other, 'other'),
+    other : new Data(other, 'smallConfig'),
     commodity : new Data(commodity, 'commodity'),
-    storyFight : new Data(storyFight, 'storyFight')
+    storyFight : new Data(storyFight, 'storyFight'),
+    seedRandom : new Data(seedRandom, 'seedRandom'),
+    shopList : new Data(shopList, 'shopList')
 
 };

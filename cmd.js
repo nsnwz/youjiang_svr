@@ -54,7 +54,7 @@ cmds = {
     1007 : playerHandler.buyAccelerateGrowth,
     /*
         CMD 进入战斗
-        INPUT {id : }
+        INPUT {mode, id }
      */
     1008 : playerHandler.enterFight,
     /*
@@ -64,7 +64,7 @@ cmds = {
     1009 : playerHandler.selectSkill,
     /*
         CMD 校验战斗
-        INPUT [fight : {[type, pos, damage] ...}]
+        INPUT [data : {[type, pos, damage, cirt, updateTime] ...}, win :]
         type 0为伤害， 1为技能
      */
     1010 : playerHandler.checkFight,
@@ -119,7 +119,12 @@ cmds = {
         CMD 使用技能
         INPUT {pos, skillID}
      */
-    1021 : playerHandler.useSkill
+    1021 : playerHandler.useSkill,
+    /*
+        CMD 购买能量点
+        INPUT {itemID : cout, ....}
+     */
+    1022 : playerHandler.buyShopList
 
 };
 

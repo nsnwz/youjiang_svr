@@ -34,5 +34,9 @@ module.exports = {
     SKILL : {
       NOT_RIGHT_USE_SKILL : 10000
     },
+    FIGHT : {
+        CHECK_NOT_CORRECT : 20000,
+        FITHT_LOST : 20001
+    },
     MAX_FREE_STEAL_NUM : 5
 };

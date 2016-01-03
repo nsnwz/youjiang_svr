@@ -37,11 +37,15 @@ var player = function() {
                         def : 200, //防御
                         hp : 900, //血量
                         fightTime : 1000, //攻击时间间隔
-                        finishTask : 0, //完成的任务数目
+                        finishTask : 0, //剧情模式完成的数目
+                        bossFinishTask : 0,//挑战模式完成的数目
                         buyStealNumLeft : 0, //购买的偷的次数
-                        freeStealNumUsed : 0, //免费的偷的次数
-                        powerUsed : 0, //已经使用的活力值数目
-                        cleanDayTime : 0 //上次清理每日数据的时间
+                        freeStealNumUsed : 0, //免费的偷的次数(每天清除)
+                        powerUsed : 0, //已经使用的活力值数目(每天清除)
+                        buyPowerNum : 0, //购买的活力点
+                        cleanDayTime : 0, //上次清理每日数据的时间
+                        bossFightHp : -1, //挑战模式用户保留的血量，-1表示需要初始化为初始血量(每天清除)
+                        starNum : 0 //战斗星级
                        };
     this.bag = {}; //背包
     this.fields = {}; //田块种植信息
@@ -52,14 +56,16 @@ var player = function() {
                                 fieldsLevel : 1 //拥有的总的田块数目
                                };
     this.skills = {
-                     10001 : {lv : 1, selected : false}, //战斗技能
+                     10001 : {lv : 1, selected : true}, //战斗技能
                      10002 : {lv : 1, selected : false},
-                     10003 : {lv : 1, selected : true},
-                     20001 : {useTimes : 0, selected : false},
-                     20002 : {useTimes : 0, selected : true}
+                     10003 : {lv : 1, selected : false},
+                     20001 : {useTimes : 0, selected : true},
+                     20002 : {useTimes : 0, selected : false},
+                     30001 : {lv : 0}
                    };
     this.session = undefined;
     this.fightInfo = {
+                         mode : 0,
                          id :0,
                          startTime : 0,
                          playerInitHp : 0,
@@ -262,7 +268,7 @@ player.prototype.saveSkills = function() {
 
 player.prototype.checkSkillCanLevelUp = function(skillID) {
         if (this.skills.hasOwnProperty(skillID)) {
-            if (this.skills[skillID].hasOwnProperty('lv')) {
+            if (this.skills[skillID].hasOwnProperty('lv') && this.skills[skillID].lv > 0) {
                 return true;
             }
         }
@@ -337,9 +343,13 @@ player.prototype.addCoins = function(addNum) {
     this.attribute.totalCoins += addNum;
 };
 
+player.prototype.addDiamonds = function(addNum) {
+    this.attribute.diamonds += addNum;
+};
+
 player.prototype.checkCanUseSkill = function (id) {
     for (var key in this.skills) {
-        if (id == key && this.skills[key].hasOwnProperty('useTimes') && this.skills[key].useTimes > 0
+        if (id == parseInt(key) && this.skills[key].hasOwnProperty('useTimes') && this.skills[key].useTimes > 0
             && this.skills[key].hasOwnProperty('selected') && this.skills[key].selected) {
             return true;
         }
@@ -368,30 +378,29 @@ player.prototype.updateFightNoHurt = function(updateTime) {
 };
 
 player.prototype.clearFightInfo = function () {
-    /*
+        this.fightInfo.mode = 0;
         this.fightInfo.id  = 0;
-        startTime : 0,
-        playerInitHp : 0,
-        bossInitHp : 0,
-        playerInitAtk : 0,
-        bossInitAtk : 0,
-        playerInitDef : 0,
-        bossInitDef : 0,
-        posRightAtk : 0,
-        posRightDef : 0,
-        posRightHp : 0,
-        posLeftAtk : 0,
-        posLeftDef : 0,
-        posLeftHp : 0,
-        playerUseSkills : {},
-    bossUseSkills : {},
-    playerNotHurtState : 0,
-        bossNotHurtState : 0,
-        playerNotHurtTime : 0,
-        bossNotHurtTime : 0,
-        player20Hurt : 0,
-        boss20Hurt : 0,
-        */
+        tis.figithInfo.startTime = 0;
+        this.fightInfo.playerInitHp = 0;
+        this.fightInfo.bossInitHp = 0;
+        this.fightInfo.playerInitAtk = 0;
+        this.fightInfo.bossInitAtk = 0;
+        this.fightInfo.playerInitDef = 0;
+        this.fightInfo.bossInitDef = 0;
+        this.fightInfo.posRightAtk = 0;
+        this.fightInfo.posRightDef = 0;
+        this.fightInfo.posRightHp = 0;
+        this.fightInfo.posLeftAtk = 0;
+        this.fightInfo.posLeftDef = 0;
+        this.fightInfo.posLeftHp = 0;
+        this.fightInfo.playerUseSkills = {};
+        this.fightInfo.bossUseSkills = {};
+        this.fightInfo.playerNotHurtState = 0;
+        this.fightInfo.bossNotHurtState = 0;
+        this.fightInfo.playerNotHurtTime = 0;
+        this.fightInfo.bossNotHurtTime = 0;
+        this.fightInfo.player20Hurt = 0;
+        this.fightInfo.boss20Hurt = 0;
 };
 
 module.exports = player;

@@ -50,3 +50,35 @@ item.getSkillAddValue = function(lv) {
         return 0;
     }
 };
+
+item.getSeedRandom = function(id) {
+    var elem = dataapi.seedRandom.findById(id);
+    if (elem == null) {
+        return -1;
+    }
+    var seedRand = [elem.seed2Random, elem.seed3Random, elem.seed3Random, elem.seed4Random];
+    var itemID = [elem.seed2, elem.seed3, elem.seed4, elem.seed5];
+    var rand = Math.random();
+    var sum = 0;
+    for (var key in seedRand) {
+        sum = sum + seedRand[key];
+        if (rand <= sum) {
+            return itemID[key];
+        }
+    }
+    return 0;
+};
+
+item.getStarNum = function(id, time) {
+    var elem = dataapi.storyFight.findById(id);
+    if (elem == null) {
+        return 0;
+    }
+    var fightStarTime = dataapi.other.findById('fightStarTime').val.split('/');
+    var fightStarRandom = dataapi.other.findById('fightStarRandom').val.split('/');
+    for (var key in fightStarTime) {
+        if (time < fightStarTime[key]) {
+            return (elem.star * fightStarRandom[key] / 3);
+        }
+    }
+};

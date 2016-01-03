@@ -11,6 +11,7 @@ var dataapi = require('./dataapi');
 var item = require('./item');
 var calc = require('./calc');
 var skill = require('./skill');
+var shopList = require('./shopList');
 
 
 var playerHandler = module.exports;
@@ -103,31 +104,41 @@ playerHandler.buyItem = function(req, res) {
         var seed = dataapi.seed.findById(parseInt(key));
         console.log("seed ", seed, seed.hasOwnProperty('moneyType'));
         if (seed.moneyType == null || seed.moneyType == 0) {
-            if (p.attribute.coins < seed.buy) {
+            if (p.attribute.coins < seed.buy * params[key]) {
                 console.log("coins not enough!");
                 p.sendError(req, res, code.ITEM_ERROR.NOT_ENOUGH_COINS_BUY_ITEM);
                 return;
             }
         } else {
-            if (p.attribute.diamonds < seed.buy) {
+            if (p.attribute.diamonds < seed.buy * params[key]) {
                 console.log("diamonds not enough!");
                 p.sendError(req, res, code.ITEM_ERROR.DOMAIN_NOT_ENOUGH);
                 return;
             }
         }
      }
+    var buyItem = {};
     for (var key in params) {
         var seed = dataapi.seed.findById(parseInt(key));
         if (seed.moneyType == null || seed.moneyType == 0) {
-            p.reduceCoins(seed.buy);
+            p.reduceCoins(seed.buy * params[key]);
         } else {
-            p.reduceDiamonds(seed.buy);
+            p.reduceDiamonds(seed.buy * params[key]);
         }
-        p.addItem(parseInt(key), params[key]);
+        var seedRandomID = item.getSeedRandom(parseInt(key));
+        if (seedRandomID != -1) {
+            if (seedRandomID != 0) {
+                p.addItem(seedRandomID, params[key]);
+            }
+        } else {
+            p.addItem(parseInt(key), params[key]);
+            seedRandomID = parseInt(key);
+        }
+        buyItem[seedRandomID] = params[key];
     }
     p.saveAttribute();
     p.saveItem();
-    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify(p.attribute)}));
+    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify({attribute : JSON.stringify(p.attribute), buyItem : JSON.stringify(buyItem)})}));
 };
 
 playerHandler.getBag = function (req, res) {
@@ -564,6 +575,13 @@ playerHandler.enterFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
+    if (params.mode > 1) {
+        p.fightInfo.id = 1;
+        p.fightInfo.mode = params.mode;
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
+        return;
+    }
+    p.fightInfo.mode = 1;
     if (params.id != p.attribute.finishTask + 1) {
         p.sendError(req, res, code.TASK.HAVE_NOT_FIN_PRE_TASK);
         return;
@@ -581,7 +599,7 @@ playerHandler.enterFight = function(req, res) {
     p.fightInfo.bossInitHp = p.fightInfo.posRightHp = elem.blood;
     p.fightInfo.bossInitAtk = p.fightInfo.posRightAtk = elem.atk;
     p.fightInfo.bossInitDef = p.fightInfo.posRightDef = elem.defence;
-    p.sendError(req, res, code.OK);
+    res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
 };
 
 playerHandler.useSkill = function(req, res) {
@@ -591,11 +609,11 @@ playerHandler.useSkill = function(req, res) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    if (params == 1) {
+    if (params.pos == 1) {//boss使用技能不校验
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     } else {
-        if (!p.checkCanUseSkill(params.id)) {
+        if (!p.checkCanUseSkill(params.skillID)) {
             res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.SKILL.NOT_RIGHT_USE_SKILL}));
             return;
         }
@@ -617,22 +635,28 @@ playerHandler.checkFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
+    if (p.fightInfo.mode != 1) {
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
+        return;
+    }
     var elem = dataapi.storyFight.findById(p.fightInfo.id);
-    for (var key in params.fight) {
-        var type = params.fight[key][0];
-        var pos = params.fight[key][1];
-        var damage = params.fight[key][2];
-        var crit = params.fight[key][3];
-        var updateTime = params.fight[key][4];
-        if (fight[key][0] == 0) { //伤害包
+    var data = JSON.parse(params.data);
+    for (var key in data) {
+        var type = data[key][0];
+        var pos = data[key][1];
+        var damage = data[key][2];
+        var crit = data[key][3];
+        var updateTime = data[key][4];
+        console.log('type ', type);
+        if (type == 0) { //伤害包
             var descHp = 0;
             if (pos == 0) {//用户受伤
-                descHp = calc.monsterToPlayerDamage(p.fightInfo.posRightAtk, p.fightInfo.posLeftDef, p.fightInfo.playerNotHurtState);
+                descHp = calc.monsterToPlayerDamage(p.fightInfo.posRightAtk, p.fightInfo.posLeftDef, crit, p.fightInfo);
             } else if (pos == 1) {// boss受伤
-                descHp = calc.playerToMonsterDamage(p.fightInfo.posLeftAtk, p.fightInfo.posRightDef, p.fightInfo.bossNotHurtState);
+                descHp = calc.playerToMonsterDamage(p.fightInfo.posLeftAtk, p.fightInfo.posRightDef, crit, p.fightInfo);
             }
             if (pos == 0) { //用户伤害
-                if (damage < descHp * 1.2) {
+                if (damage < descHp * 0.8) {
                     consoel.log(" fight check error");
                 } else {
                     p.fightInfo.posLeftHp -= damage;
@@ -654,11 +678,65 @@ playerHandler.checkFight = function(req, res) {
         }
         p.updateFightNoHurt(updateTime);
    }
+    var win = 0;
     var nowTime = new Date().getTime();
     if (p.fightInfo.posRightHp < p.fightInfo.bossInitHp * 0.1 && nowTime - p.fightInfo.startTime < 70) {
         console.log('succ');
         p.clearFightInfo();
-    } else {
-        console.log('fail');
+        win = 1;
     }
+    if (win == params.win) {
+        var starNum = item.getStarNum(p.fightInfo.id, nowTime - p.fightInfo.startTime);
+        p.startTime += starNum;
+        p.addCoins(elem.awardCoin);
+        p.addItem(elem.awardItem, 1);
+        p.addDiamonds(elem.awardMi);
+        p.saveAttribute();
+        p.saveItem();
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, reward : JSON.stringify({awardCoin : elem.awardCoin, awardItem : elem.awardItem, awardMi : elem.awardMi})}));
+    } else {
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.FIGHT.FITHT_LOST}));
+    }
+};
+
+playerHandler.buyShopList = function (req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    for (var key in params) {
+        if (!dataapi.shopList.findById(key)) {
+            p.sendError(req, res, code.ITEM_ERROR.NOT_EXIST_ITEM);
+            return;
+        }
+        var seed = dataapi.shopList.findById(key);
+        if (seed.moneyType == null || seed.moneyType == 0) {
+            if (p.attribute.coins < seed.price * params[key]) {
+                console.log("coins not enough!");
+                p.sendError(req, res, code.ITEM_ERROR.NOT_ENOUGH_COINS_BUY_ITEM);
+                return;
+            }
+        } else {
+            if (p.attribute.diamonds < seed.price * params[key]) {
+                console.log("diamonds not enough!");
+                p.sendError(req, res, code.ITEM_ERROR.DOMAIN_NOT_ENOUGH);
+                return;
+            }
+        }
+    }
+
+    for (var key in params) {
+        var seed = dataapi.shopList.findById(parseInt(key));
+        if (seed.moneyType == null || seed.moneyType == 0) {
+            p.reduceCoins(seed.price * params[key]);
+        } else {
+            p.reduceDiamonds(seed.price * params[key]);
+        }
+        console.log('key  ', key);
+        console.log(shopList[key]);
+        shopList[key](p, params[key]);
+    }
+    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify({attribute : JSON.stringify(p.attribute)})}));
 };
