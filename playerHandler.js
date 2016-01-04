@@ -12,9 +12,13 @@ var item = require('./item');
 var calc = require('./calc');
 var skill = require('./skill');
 var shopList = require('./shopList');
-
+var event = require('./event');
 
 var playerHandler = module.exports;
+
+setTimeout(function() {
+    event.emit('login', 5004, 1, 2);
+}, 5000);
 
 playerHandler.addPlayer = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
@@ -76,7 +80,6 @@ playerHandler.getPlayerInfo = function(req, res) {
                 }
                 p.dealSeedOffline();
                 p.dealDayValue();
-                p.attribute.coins = 100000000000000;
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
             }
         ], function(err, res) {
