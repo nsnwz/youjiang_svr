@@ -14,3 +14,6 @@ event.on('harvest', function(p, itemID) {
     }
     p.dayHarvest[item.getSeedType(itemID)][item.getSeedLv(itemID)] += 1;
 });
+
+
+

@@ -14,8 +14,11 @@ var skill = require('./skill');
 var shopList = require('./shopList');
 var event = require('./event');
 
-
 var playerHandler = module.exports;
+
+setTimeout(function() {
+    event.emit('login', 5004, 1, 2);
+}, 5000);
 
 playerHandler.addPlayer = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
@@ -77,7 +80,6 @@ playerHandler.getPlayerInfo = function(req, res) {
                 }
                 p.dealSeedOffline();
                 p.dealDayValue();
-                p.attribute.coins = 100000000000000;
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
             }
         ], function(err, res) {
@@ -390,7 +392,18 @@ playerHandler.upSkillLevel = function(req, res) {
 };
 
 playerHandler.getServerTime = function(req, res) {
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
     var nowTime = new Date().getTime();
+    if (nowTime - p.attribute.onlineUpdateTime < 20) {
+        p.attribute.onlineTime += nowTime - p.attribute.onlineUpdateTime;
+        p.attribute.onlineUpdateTime = nowTime;
+    } else {
+        p.attribute.onlineUpdateTime = nowTime;
+    }
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({now : nowTime})}));
 };
 
@@ -743,3 +756,73 @@ playerHandler.buyShopList = function (req, res) {
     }
     res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify({attribute : JSON.stringify(p.attribute)})}));
 };
+
+playerHandler.setClientKeyValue = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    p.cliSetData[params.key] = params.value;
+    redisClient.hset(p.id + code.GAME_NAME,  'clientKeyValue', JSON.stringify(p.cliSetData), null);
+    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK}));
+};
+
+playerHandler.getClientKeyValue = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var values = {};
+    for (var key in params.keys) {
+        values[key] = p.cliSetData.hasOwnProperty(key) ? p.cliSetData[key] : 0;
+    }
+    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify(values)}));
+};
+
+playerHandler.getRandEvent = function(req, res) {
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    var needTimes = 0;
+    if (p.attribute.randEventTimes == 0) {
+        needTimes = 5 * 60;
+    } else if (p.attribute.randEventTimes == 1) {
+        needTimes = 10 * 60;
+    } else {
+        needTimes = 15 * 60;
+    }
+    if (p.attribute.onlineTime - p.attribute.lastDoneRandEventOlTime < needTimes) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    var eventRand = [26, 26, 26, 21, 1];
+    var randNum = Math.random() * (100 + 1);
+    var sum = 0;
+    for (var key in eventRand) {
+        sum = sum + eventRand[key];
+        if (sum <= randNum) {
+            p.attribute.randEventID = key + 1;
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({ID : key + 1})}));
+        }
+    }
+};
+
+playerHandler.getRandEventReward = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    if (!p.attribute.randEventID) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    //get result
+    p.attribute.randEventID = 0;
+    p.attribute.lastDoneRandEventOlTime = p.attribute.onlineTime;
+    //结果
+};
+
+

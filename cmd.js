@@ -124,7 +124,26 @@ cmds = {
         CMD 购买能量点
         INPUT {itemID : cout, ....}
      */
-    1022 : playerHandler.buyShopList
+    1022 : playerHandler.buyShopList,
+    /*
+        CMD client设置valfue值
+        INPUT {key : value}
+     */
+    1023 : playerHandler.setClientKeyVlaue,
+    /*
+        CMD client拉取key/value值
+        INPUT keys : [key1, key2, key3, ...]
+     */
+    1024 : playerHandler.getClientKeyValue,
+    /*
+        CMD 获取随机事件
+     */
+    1025 : playerHandler.getRandEvent,
+    /*
+        CMD 得到随机事件的结果
+        INPUT {result }
+     */
+    1026 : playerHandler.getRandEventReward
 
 };
 
