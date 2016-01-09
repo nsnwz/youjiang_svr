@@ -12,6 +12,7 @@ var item = require('./item');
 var calc = require('./calc');
 var skill = require('./skill');
 var shopList = require('./shopList');
+var event = require('./event');
 
 
 var playerHandler = module.exports;
@@ -210,6 +211,7 @@ playerHandler.harvest = function(req, res) {
         p.attribute.hp += seed.hp;
         p.attribute.coins += seed.harvest;
         p.attribute.totalCoins += seed.harvest;
+        event.emit('harvest', p, p.fields[params.fields[key]].itemID);
         delete p.fields[params.fields[key]];
         redisClient.zincrby(code.GAME_NAME + 'coins', seed.harvest, p.id, null);
     }
@@ -457,16 +459,16 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 for (var i = 0; i < redis.length; i++) {
                     idx.push(i);
                 }
-                arr.sort(function() {
+                idx.sort(function() {
                     return Math.random() - 0.5;
                 });
-                arr.length = 10;
-                for (var i = 0; i < arr.length; i++) {
+                idx.length = 10;
+                for (var i = 0; i < idx.length; i++) {
                     p.stealInfo.push(redis[i]);
                 }
             }
-            res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo)})}));
             p.saveStealInfo();
+            res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo)})}));
         }
     ], function(err, result) {
         if (err) {
@@ -693,6 +695,7 @@ playerHandler.checkFight = function(req, res) {
         p.addDiamonds(elem.awardMi);
         p.saveAttribute();
         p.saveItem();
+        redisClient.zincrby(code.GAME_NAME + 'star', starNum, p.id, null);
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, reward : JSON.stringify({awardCoin : elem.awardCoin, awardItem : elem.awardItem, awardMi : elem.awardMi})}));
     } else {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.FIGHT.FITHT_LOST}));

@@ -82,3 +82,11 @@ item.getStarNum = function(id, time) {
         }
     }
 };
+
+item.getSeedType = function(itemID) {
+  return (parseInt(itemID / 10000));
+};
+
+item.getSeedLv = function(itemID) {
+  return (itemID % 10);
+};

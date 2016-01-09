@@ -10,6 +10,7 @@ var commodity = require('./config/data/commodity');
 var storyFight = require('./config/data/storyFight');
 var seedRandom = require('./config/data/seedRandom');
 var shopList = require('./config/data/shopList');
+var task = require('./config/data/task');
 /**
  * Data model `new Data()`
  *
@@ -125,6 +126,7 @@ Data.prototype.findById = function(id) {
 Data.prototype.all = function() {
     return this.data;
 };
+
 /*
 Data.prototype.reload = function(){
     var self = this;
@@ -174,6 +176,7 @@ module.exports = {
     commodity : new Data(commodity, 'commodity'),
     storyFight : new Data(storyFight, 'storyFight'),
     seedRandom : new Data(seedRandom, 'seedRandom'),
-    shopList : new Data(shopList, 'shopList')
+    shopList : new Data(shopList, 'shopList'),
+    task : new Data(task, 'task')
 
 };

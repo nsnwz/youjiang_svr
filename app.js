@@ -50,3 +50,6 @@ var httpServer = http.createServer(function (req, res) {
 httpServer.listen(80);
 console.log('server start ');
 
+process.on('uncaughtException', function (err) {
+    console.error(' Caught exception: ' + err.stack);
+});

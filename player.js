@@ -92,6 +92,9 @@ var player = function() {
     this.dailyValue = {};
     this.stealInfo = [];
     this.stealMePlayers = [];
+    this.dayHarvest = {1 : {1 : 0, 2 : 0, 3 : 0, 4 :0, 5 : 0}, 2 : {1 : 0, 2 : 0, 3 :0, 4 :0, 5 : 0}, 3 : {1 : 0, 2 : 0, 3 : 0, 4 : 0, 5 : 0},
+                         3 : {1 : 0, 2 : 0, 3 : 0, 4 :0, 5 : 0}, 2 : {1 : 0, 2 : 0, 3 :0, 4 :0, 5 : 0}, 4 : {1 : 0, 2 : 0, 3 : 0, 4 : 0, 5 : 0}};
+    this.task = {day : {10001 : 0, 10002 : 0, 10003 : 0, 10004 : 0, 10005 : 0, 10006 : 0, 10007 : 0, 10008 : 0}, forEver : {}};
 };
 
 player.prototype.initFromDB = function(dbrecord) {
