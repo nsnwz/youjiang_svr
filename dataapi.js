@@ -11,6 +11,7 @@ var storyFight = require('./config/data/storyFight');
 var seedRandom = require('./config/data/seedRandom');
 var shopList = require('./config/data/shopList');
 var task = require('./config/data/task');
+var bossFight = require('./config/data/bossFight');
 /**
  * Data model `new Data()`
  *
@@ -177,6 +178,7 @@ module.exports = {
     storyFight : new Data(storyFight, 'storyFight'),
     seedRandom : new Data(seedRandom, 'seedRandom'),
     shopList : new Data(shopList, 'shopList'),
-    task : new Data(task, 'task')
+    task : new Data(task, 'task'),
+    bossFight : new Data(bossFight, 'bossFight')
 
 };

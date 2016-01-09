@@ -89,6 +89,7 @@ cmds = {
     1014 : playerHandler.upSkillLevel,
     /*
         CMD 获取服务器时间
+        INPUT {totalTime : }
      */
     1015 : playerHandler.getServerTime,
     /*
@@ -121,15 +122,15 @@ cmds = {
      */
     1021 : playerHandler.useSkill,
     /*
-        CMD 购买能量点
+        CMD 购买shopList中物品
         INPUT {itemID : cout, ....}
      */
     1022 : playerHandler.buyShopList,
     /*
-        CMD client设置valfue值
-        INPUT {key : value}
+        CMD client设置value值
+        INPUT {key : value, key : value,....}
      */
-    1023 : playerHandler.setClientKeyVlaue,
+    1023 : playerHandler.setClientKeyValue,
     /*
         CMD client拉取key/value值
         INPUT keys : [key1, key2, key3, ...]
@@ -140,10 +141,19 @@ cmds = {
      */
     1025 : playerHandler.getRandEvent,
     /*
-        CMD 得到随机事件的结果
-        INPUT {result }
+        CMD 得到随机事件的奖励(1表示获胜，2表示失败，3表示放弃)
+        INPUT {result :  }
      */
-    1026 : playerHandler.getRandEventReward
+    1026 : playerHandler.getRandEventReward,
+    /*
+        CMD 领取任务奖励
+        INPUT {taskID }
+     */
+    1027 : playerHandler.getTaskReward,
+    /*
+        CMD 得到任务信息
+     */
+    1028 : playerHandler.getTaskInfo
 
 };
 

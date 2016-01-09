@@ -9,6 +9,8 @@ var code = require("./code");
 var dataapi = require('./dataapi');
 var fieldSeed = require('./fieldSeed');
 var item = require('./item');
+var Task = require('./task');
+var event = require('./event');
 
 /**
  * 用户数据信息
@@ -46,15 +48,15 @@ var player = function() {
                         cleanDayTime : 0, //上次清理每日数据的时间
                         bossFightHp : -1, //挑战模式用户保留的血量，-1表示需要初始化为初始血量(每天清除)
                         starNum : 0, //战斗星级
-                        mood : 0, //心情 (初始值需要每天清除)
+                        mood : 1, //心情 (初始值需要每天清除, 1表示正常，2表示高兴，3表示哭)
                         onlineTime : 0, //在线时长(每天清除)
                         onlineUpdateTime : 0, //在线时长更新时间(登入额时候设置为登入时间)
                         lastDoneRandEventOlTime : 0, //上次昨晚随机事件的在线时长(每天清除)
                         randEventTimes : 0, //随机事件的次数(每天清除)
                         randEventID : 0, //随机到的事件(每天清除)
-                       };
+                       }; //
     this.bag = {}; //背包
-    this.fields = {}; //田块种植信息
+    this.fields = {}; //田块种植信息 (
     this.fieldsAttribute = {
                                 600001 : 0, //田块种植技能1，value为持续的到期时间
                                 600002 : 0, //田块种植技能2，value为持续的到期时间
@@ -62,12 +64,12 @@ var player = function() {
                                 fieldsLevel : 1 //拥有的总的田块数目
                                };
     this.skills = {
-                     10001 : {lv : 1, selected : true}, //战斗技能
-                     10002 : {lv : 1, selected : false},
-                     10003 : {lv : 1, selected : false},
-                     20001 : {useTimes : 0, selected : true},
-                     20002 : {useTimes : 0, selected : false},
-                     30001 : {lv : 0}
+                     10001 : {lv : 1, selected : true}, //战斗技能, 等级，是否选择
+                     10002 : {lv : 1, selected : false}, //战斗技能, 等级，是否选择
+                     10003 : {lv : 1, selected : false}, //战斗技能, 等级，是否选择
+                     20001 : {useTimes : 0, selected : true}, //可以使用次数，是否选择
+                     20002 : {useTimes : 0, selected : false}, //可以使用次数，是否选择
+                     30001 : {lv : 0} //等级为零表示没有此技能，大于0表示有
                    };
     this.session = undefined;
     this.fightInfo = {
@@ -95,13 +97,10 @@ var player = function() {
                          player20Hurt : 0,
                          boss20Hurt : 0,
                         };
-    this.dailyValue = {};
-    this.stealInfo = [];
-    this.stealMePlayers = [];
-    this.cliSetData = {};//登入拉取
-    this.dayHarvest = {1 : {1 : 0, 2 : 0, 3 : 0, 4 :0, 5 : 0}, 2 : {1 : 0, 2 : 0, 3 :0, 4 :0, 5 : 0}, 3 : {1 : 0, 2 : 0, 3 : 0, 4 : 0, 5 : 0},
-                         3 : {1 : 0, 2 : 0, 3 : 0, 4 :0, 5 : 0}, 2 : {1 : 0, 2 : 0, 3 :0, 4 :0, 5 : 0}, 4 : {1 : 0, 2 : 0, 3 : 0, 4 : 0, 5 : 0}};
-    this.task = {day : {10001 : 0, 10002 : 0, 10003 : 0, 10004 : 0, 10005 : 0, 10006 : 0, 10007 : 0, 10008 : 0}, forEver : {}};
+    this.stealInfo = []; //保存上次用户随机到的偷取哪些用户的信息
+    this.stealMePlayers = [];//保存偷取自己的用户信息
+    this.cliSetData = {};//客户端使用的key/value
+    this.task = new Task(); //任务
 };
 
 player.prototype.initFromDB = function(dbrecord) {
@@ -193,6 +192,9 @@ player.prototype.addItem = function(nID, nAmount) {
     } else {
         this.bag[nID] = 0;
         this.bag[nID] += nAmount;
+    }
+    if (nID == 60000) {
+        event.emit('60000', this);
     }
     console.log(JSON.stringify(this.bag));
     return true;
@@ -304,9 +306,18 @@ player.prototype.dealDayValue = function() {
     if (this.attribute.cleanDayTime != today) {
         this.attribute.FreeStealNumUsed  = 0;
         this.attribute.powerUsed = 0;
+        this.attribute.bossFightHp = -1;
+        this.attribute.mmod = parseInt(Math.random() * 2 + 1);
+        this.attribute.onlineTime = 0;
+        this.attribute.onlineUpdateTime = new Date().getTime();
+        this.attribute.lastDoneRandEventOlTime = 0;
+        this.attribute.randEventTimes = 0;
+        this.attribute.randEventID = 0;
+        this.task.clearDayTask();
         this.attribute.cleanDayTime = today;
     }
     this.saveAttribute();
+    this.saveTask();
 };
 
 player.prototype.saveStealInfo = function() {
@@ -355,6 +366,14 @@ player.prototype.addCoins = function(addNum) {
 
 player.prototype.addDiamonds = function(addNum) {
     this.attribute.diamonds += addNum;
+};
+
+player.prototype.saveTask = function() {
+    redisClient.hset(this.id + code.GAME_NAME, "task", JSON.stringify(this.task), null);
+};
+
+player.prototype.saveDayHarvest = function(taskID) {
+    redisClient.hset(this.id + code.GAME_NAME, "dayHarvest", JSON.stringify(this.dayHarvest), null);
 };
 
 player.prototype.checkCanUseSkill = function (id) {
@@ -411,6 +430,32 @@ player.prototype.clearFightInfo = function () {
         this.fightInfo.bossNotHurtTime = 0;
         this.fightInfo.player20Hurt = 0;
         this.fightInfo.boss20Hurt = 0;
+};
+
+player.prototype.initTask = function (task) {
+    this.task = task;
+};
+
+player.prototype.reducePower = function(mode) {
+    var reduceValue  = 0;
+    if (mode == 1) {
+        reduceValue = 1;
+    } else if (mode == 2) {
+        reduceValue = 2;
+    }
+    if (this.attribute.powerUsed + reduceValue > 50 + this.attribute.buyPowerNum) {
+        return false;
+    }
+    if (50 - this.attribute.powerUsed >= reduceValue) {
+        this.attribute.powerUsed += reduceValue;
+    } else {
+        var value = reduceValue - (50 - this.attribute.powerUsed);
+        p.attribute.powerUsed = 50;
+        p.attribute.buyPowerNum -= value;
+    }
+    this.saveAttribute();
+    return true;
+
 };
 
 module.exports = player;

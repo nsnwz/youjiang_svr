@@ -69,16 +69,29 @@ item.getSeedRandom = function(id) {
     return 0;
 };
 
-item.getStarNum = function(id, time) {
-    var elem = dataapi.storyFight.findById(id);
-    if (elem == null) {
-        return 0;
-    }
-    var fightStarTime = dataapi.other.findById('fightStarTime').val.split('/');
-    var fightStarRandom = dataapi.other.findById('fightStarRandom').val.split('/');
-    for (var key in fightStarTime) {
-        if (time < fightStarTime[key]) {
-            return (elem.star * fightStarRandom[key] / 3);
+item.getStarNum = function(p, id, time, mode) {
+    if (mode == 2) {//pve无尽模式
+        if (p.attribute.bossFinishTask + 1 ==id) {
+            var elem = dataapi.bossFight.findById(id);
+            if (elem) {
+                p.attribute.bossFinishTask = id;
+                return elem.star;
+            }
+            return 0;
+        } else {
+            return 0;
+        }
+    } else {//pve剧情模式
+        var elem = dataapi.storyFight.findById(id);
+        if (elem == null) {
+            return 0;
+        }
+        var fightStarTime = dataapi.other.findById('fightStarTime').val.split('/');
+        var fightStarRandom = dataapi.other.findById('fightStarRandom').val.split('/');
+        for (var key in fightStarTime) {
+            if (time < fightStarTime[key]) {
+                return (elem.star * fightStarRandom[key] / 3);
+            }
         }
     }
 };

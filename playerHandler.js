@@ -13,12 +13,9 @@ var calc = require('./calc');
 var skill = require('./skill');
 var shopList = require('./shopList');
 var event = require('./event');
+var task = require('./task');
 
 var playerHandler = module.exports;
-
-setTimeout(function() {
-    event.emit('login', 5004, 1, 2);
-}, 5000);
 
 playerHandler.addPlayer = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
@@ -31,6 +28,15 @@ playerHandler.addPlayer = function(req, res) {
         p.attribute.coins = 100000000000000;
         p.attribute.totalCoins = p.attribute.coins;
         p.attribute.diamonds = 10000000000;
+        p.fields[1] = {itemID:10003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(10003), updateTime : 0};
+        p.fields[1] = {itemID:20003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(20003), updateTime : 0};
+        p.fields[1] = {itemID:30003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(30003), updateTime : 0};
+        p.fields[1] = {itemID:40003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(40003), updateTime : 0};
+        p.addItem(10002, 6);
+        p.addItem(20002, 6);
+        p.addItem(30002, 6);
+        p.addItem(40002, 6);
+        p.saveItem();
         p.saveAttribute();
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify({uid : p.id, name : p.name, pic : p.pic })}));
     });
@@ -78,13 +84,46 @@ playerHandler.getPlayerInfo = function(req, res) {
                     p.initAttribute(JSON.parse((redis)));
                     console.log(p.attribute);
                 }
+                redisClient.hget(p.id + code.GAME_NAME, "task", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    p.initTask(JSON.parse(redis));
+                }
+                redisClient.hget(p.id + code.GAME_NAME, "cliSetData", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    p.cliSetData = JSON.parse(redis);
+                    console.log('cli set data', p.cliSetData);
+                }
+                redisClient.hget(p.id + code.GAME_NAME, "fieldsAttribute", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    p.fieldsAttribute = JSON.parse(redis);
+                }
+                redisClient.hget(p.id + code.GAME_NAME, "skills", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    p.skills = JSON.parse(redis);
+                }
+                redisClient.hget(p.id + code.GAME_NAME, "stealInfo", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    p.stealInfo = JSON.parse(redis);
+                }
+                redisClient.hget(p.id + code.GAME_NAME, "stealMePlayers", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    p.stealMePlayers = JSON.parse(redis);
+                }
+                cb(null);
+            }
+        ], function(err) {
+            if (err != null) {
+                console.log('get redis error');
+            } else {
                 p.dealSeedOffline();
                 p.dealDayValue();
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
-            }
-        ], function(err, res) {
-            if (err != null) {
-                console.log('get redis error');
             }
         });
      }
@@ -392,18 +431,26 @@ playerHandler.upSkillLevel = function(req, res) {
 };
 
 playerHandler.getServerTime = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
+    var addTime = params.totalTime > p.attribute.onlineTime ? p.attribute.onlineTime - params.retry_totaltime : 0;
+    /*
     var nowTime = new Date().getTime();
-    if (nowTime - p.attribute.onlineUpdateTime < 20) {
-        p.attribute.onlineTime += nowTime - p.attribute.onlineUpdateTime;
+    if (nowTime - p.attribute.onlineUpdateTime < 10) {
+        if (addTime > 100) {
+            console.log('addTime error!');
+        }
         p.attribute.onlineUpdateTime = nowTime;
     } else {
         p.attribute.onlineUpdateTime = nowTime;
     }
+    */
+    p.attribute.onlineTime = params.totalTime;
+    p.saveAttribute();
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({now : nowTime})}));
 };
 
@@ -590,7 +637,10 @@ playerHandler.enterFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    if (params.mode > 1) {
+    if (!p.reducePower(params.mode)) {
+        return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+    }
+    if (params.mode > 2) { //mode 1表示pve剧情模式，2表示pve无尽模式，800pve引导模式，801PVE随机事件，10PVP战斗模式
         p.fightInfo.id = 1;
         p.fightInfo.mode = params.mode;
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
@@ -608,7 +658,11 @@ playerHandler.enterFight = function(req, res) {
     }
     p.fightInfo.id = params.id;
     p.fightInfo.startTime = new Date().getTime();
-    p.fightInfo.playerInitHp = p.fightInfo.posLeftHp = p.hp;
+    if (params.mode == 1) {
+        p.fightInfo.playerInitHp = p.fightInfo.posLeftHp = p.hp;
+    } else if (params.mode == 2) {
+        p.fightInfo.playerInitHp = p.fightInfo.posLeftHp = p.attribute.bossFightHp;
+    }
     p.fightInfo.playerInitAtk = p.fightInfo.posLeftAtk = p.atk;
     p.fightInfo.playerInitDef  = p.fightInfo.posLeftDef = p.def;
     p.fightInfo.bossInitHp = p.fightInfo.posRightHp = elem.blood;
@@ -650,7 +704,7 @@ playerHandler.checkFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    if (p.fightInfo.mode != 1) {
+    if (p.fightInfo.mode > 2) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     }
@@ -697,22 +751,27 @@ playerHandler.checkFight = function(req, res) {
     var nowTime = new Date().getTime();
     if (p.fightInfo.posRightHp < p.fightInfo.bossInitHp * 0.1 && nowTime - p.fightInfo.startTime < 70) {
         console.log('succ');
-        p.clearFightInfo();
         win = 1;
     }
     if (win == params.win) {
-        var starNum = item.getStarNum(p.fightInfo.id, nowTime - p.fightInfo.startTime);
-        p.startTime += starNum;
+        var starNum = item.getStarNum(p, p.fightInfo.id, nowTime - p.fightInfo.startTime, p.fightInfo.mode);
+        p.attribute.starNum += starNum;
         p.addCoins(elem.awardCoin);
         p.addItem(elem.awardItem, 1);
         p.addDiamonds(elem.awardMi);
         p.saveAttribute();
         p.saveItem();
         redisClient.zincrby(code.GAME_NAME + 'star', starNum, p.id, null);
-        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, reward : JSON.stringify({awardCoin : elem.awardCoin, awardItem : elem.awardItem, awardMi : elem.awardMi})}));
+        if (p.fightInfo.mode == 2) {
+            p.attribute.bossFightHp = p.fightInfo.posLeftHp;
+        }
+        event.emit('fight', p, starNum);
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, reward : JSON.stringify({awardCoin : elem.awardCoin, awardItem : elem.awardItem, awardMi : elem.awardMi, bossFightHp : p.attribute.bossFightHp})}));
+
     } else {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.FIGHT.FITHT_LOST}));
     }
+    p.clearFightInfo();
 };
 
 playerHandler.buyShopList = function (req, res) {
@@ -764,16 +823,25 @@ playerHandler.setClientKeyValue = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    p.cliSetData[params.key] = params.value;
-    redisClient.hset(p.id + code.GAME_NAME,  'clientKeyValue', JSON.stringify(p.cliSetData), null);
+    for (var key in params) {
+        p.cliSetData[key] = params[key];
+    }
+    redisClient.hset(p.id + code.GAME_NAME,  'cliSetData', JSON.stringify(p.cliSetData), null);
+    console.log(p.cliSetData);
     res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK}));
 };
 
 playerHandler.getClientKeyValue = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    var params = JSON.parse(req.body.cmdParams);
     var values = {};
     for (var key in params.keys) {
-        values[key] = p.cliSetData.hasOwnProperty(key) ? p.cliSetData[key] : 0;
+        values[params.keys[key]] = p.cliSetData.hasOwnProperty(params.keys[key]) ? p.cliSetData[params.keys[key]] : 0;
     }
     res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify(values)}));
 };
@@ -786,8 +854,10 @@ playerHandler.getRandEvent = function(req, res) {
     }
     var needTimes = 0;
     if (p.attribute.randEventTimes == 0) {
-        needTimes = 5 * 60;
+        needTimes = 0;
     } else if (p.attribute.randEventTimes == 1) {
+        needTimes = 5 * 60;
+    } else if (p.attribute.randEventTimes == 2) {
         needTimes = 10 * 60;
     } else {
         needTimes = 15 * 60;
@@ -796,17 +866,173 @@ playerHandler.getRandEvent = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    var eventRand = [26, 26, 26, 21, 1];
-    var randNum = Math.random() * (100 + 1);
+    var eventRand = [0.26, 0.26, 0.26, 0.21, 0.01];
+    var randNum = Math.random();
     var sum = 0;
     for (var key in eventRand) {
         sum = sum + eventRand[key];
-        if (sum <= randNum) {
+        if (sum >= randNum) {
             p.attribute.randEventID = key + 1;
-            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({ID : key + 1})}));
+            return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({ID : key + 1})}));
         }
     }
 };
+
+function addEvent1Reward(p, rand, req, res)
+{
+    var reward = [[450000,150000], [650000,250000], [850000,350000]];
+    var addCoins = 0;
+    if (params.result == 1) { //获胜
+        addCoins = reward[rand][0];
+    } else {
+        addCoins = reward[rand][1];
+    }
+    if (p.attribute.mood == 1) {
+        addCoins += 50000;
+    } else if (p.attribute.mood == 3) {
+        addCoins -= 50000;
+    }
+    p.addCoins(addCoins);
+    p.saveAttribute();
+    return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({coins : addCoins})}));
+}
+
+function addEvent2Reward(p, rand, req, res)
+{
+    var reward = [[650000,150000], [850000,250000], [1050000,350000]];
+    var addCoins = 0;
+    if (params.result == 1) {
+        addCoins = reward[rand][0];
+    } else {
+        addCoins = reward[rand][1];
+    }
+    if (p.attribute.mood == 1) {
+        addCoins += 50000;
+    } else if (p.attribute.mood == 3) {
+        addCoins -= 50000;
+    }
+    p.addCoins(addCoins);
+    p.saveAttribute();
+    return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({coins : addCoins})}));
+}
+
+function addEvent3Reward(p, rand, req, res)
+{
+    var seedRand = parseInt(Math.random() * 3);
+    var itemID = 0;
+    var itemNum = 0;
+    var addCoins = 50000;
+   if (rand == 0) {
+       if (seedRand == 0) {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 1;
+           itemNum = 30;
+       } else if (seedRand == 1) {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 2;
+           itemNum = 6;
+       } else {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 3;
+           itemNum = 2;
+       }
+   } else if (rand == 1) {
+       if (seedRand == 0) {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 2;
+           itemNum = 8;
+       } else if (seedRand == 1) {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 3;
+           itemNum = 4;
+       } else {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 4;
+           itemNum = 1;
+       }
+   } else {
+       if (seedRand == 0) {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 2;
+           itemNum = 10;
+       } else if (seedRand == 1) {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 3;
+           itemNum = 6;
+       } else {
+           itemID = parseInt(Math.random() * 4 + 1) * 10000 + 4;
+           itemNum = 2;
+       }
+   }
+   if (p.attribute.mood == 1) { //高兴
+       addCoins += 50000;
+   } else if (p.attribute.mood == 3) { //哭
+       addCoins -= 50000;
+   }
+    p.addCoins(addCoins);
+    p.addItem(itemID, itemNum);
+    p.saveAttribute();
+    p.saveItem();
+    return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({coins : addCoins, itemID : itemID, itemNum : itemNum})}));
+}
+
+function addEvent4Reward(p, rand, req, res)
+{
+    var seedRand = parseInt(Math.random() * 3);
+    var itemID = 0;
+    var itemNum = 0;
+    var addCoins = 50000;
+    if (rand == 0) {
+        if (seedRand == 0) {
+           addCoins += 400000;
+        } else if (seedRand == 1) {
+            itemID = parseInt(Math.random() * 4 + 1) * 10000 + 2;
+            itemNum = 8;
+        } else {
+            itemID = parseInt(Math.random() * 4 + 1) * 10000 + 3;
+            itemNum = 4;
+        }
+    } else if (rand == 1) {
+        if (seedRand == 0) {
+           addCoins += 600000;
+        } else if (seedRand == 1) {
+            itemID = parseInt(Math.random() * 4 + 1) * 10000 + 3;
+            itemNum = 6;
+        } else {
+            itemID = parseInt(Math.random() * 4 + 1) * 10000 + 4;
+            itemNum = 2;
+        }
+    } else {
+        if (seedRand == 0) {
+           addCoins += 800000;
+        } else if (seedRand == 1) {
+            itemID = parseInt(Math.random() * 4 + 1) * 10000 + 3;
+            itemNum = 8;
+        } else {
+            itemID = parseInt(Math.random() * 4 + 1) * 10000 + 4;
+            itemNum = 3;
+        }
+    }
+    if (p.attribute.mood == 1) {
+        addCoins += 50000;
+    } else if (p.attribute.mood == 3) {
+        addCoins -= 50000;
+    }
+    p.addCoins(addCoins);
+    p.addItem(itemID, itemNum);
+    p.saveAttribute();
+    p.saveItem();
+    return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({coins : addCoins, itemID : itemID, itemNum : itemNum})}));
+}
+
+function addEvent5Reward(p, rand, req, res)
+{
+    var addCoins = 50000;
+    if (p.attribute.mood == 1) {
+        addCoins += 50000;
+    } else if (p.attribute.mood == 3) {
+        addCoins -= 50000;
+    }
+    var itemID = itemID = parseInt(Math.random() * 4 + 1) * 10000 + 5;
+    var itemNum = 1;
+    p.addCoins(addCoins);
+    p.addItem(itemID, itemNum);
+    p.saveAttribute();
+    p.saveItem();
+    return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({coins : addCoins, itemID : itemID, itemNum : itemNum})}));
+}
 
 playerHandler.getRandEventReward = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
@@ -819,10 +1045,45 @@ playerHandler.getRandEventReward = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    //get result
+    var rand = parseInt(Math.random() * 3);
+    if (p.attribute.randEventID == 1) {
+        addEvent1Reward(p, rand, req, res);
+    } else if (p.attribute.randEventID == 2) {
+        addEvent2Reward(p, rand, req, res);
+    } else if (p.attribute.randEventID == 3) {
+        addEvent3Reward(p, rand, req, res);
+    } else if (p.attribute.randEventID == 4) {
+        addEvent4Reward(p, rand, req, res);
+    } else if (p.attribute.randEventID == 5) {
+        addEvent5Reward(p, rand, req, res);
+    }
     p.attribute.randEventID = 0;
     p.attribute.lastDoneRandEventOlTime = p.attribute.onlineTime;
-    //结果
 };
 
+playerHandler.getTaskReward = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    if (!p.task.checkFinTask(p, params.taskID)) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    var result = p.task.giveTaskReward(p,params.taskID);
+    p.task.updateTaskFin(params.taskID);
+    p.saveTask();
+    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify(result)}))
+};
 
+playerHandler.getTaskInfo = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify(p.task)}))
+};
