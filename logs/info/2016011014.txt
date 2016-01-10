@@ -1,0 +1,2 @@
+[2016-01-10 14:41:45.376] [INFO] logInfo - server start
+[2016-01-10 14:52:48.522] [INFO] logInfo - server start

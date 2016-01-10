@@ -373,7 +373,7 @@ player.prototype.addDiamonds = function(addNum) {
 };
 
 player.prototype.saveTask = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "task", JSON.stringify(this.task), null);
+    redisClient.hset(this.id + code.GAME_NAME, "task", JSON.stringify(this.task._task), null);
 };
 
 player.prototype.saveDayHarvest = function(taskID) {
@@ -437,7 +437,8 @@ player.prototype.clearFightInfo = function () {
 };
 
 player.prototype.initTask = function (task) {
-    this.task = task;
+    this.task._task = task;
+
 };
 
 player.prototype.reducePower = function(mode) {
