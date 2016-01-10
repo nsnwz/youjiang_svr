@@ -6,6 +6,7 @@
 var http = require("http");
 var cmds = require('./cmd');
 var code = require('./code');
+var log = require('./log.js').helper;
 
 var httpServer = http.createServer(function (req, res) {
     var dataChunks = undefined;
@@ -48,6 +49,7 @@ var httpServer = http.createServer(function (req, res) {
 });
 
 httpServer.listen(80);
+log.writeInfo("server start");
 console.log('server start ');
 
 process.on('uncaughtException', function (err) {
