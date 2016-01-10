@@ -14,6 +14,9 @@ var skill = require('./skill');
 var shopList = require('./shopList');
 var event = require('./event');
 var task = require('./task');
+var egret = require('./egret');
+var utils = require('./utils');
+var log = require('./log.js').helper;
 
 var playerHandler = module.exports;
 
@@ -28,16 +31,17 @@ playerHandler.addPlayer = function(req, res) {
         p.attribute.coins = 100000000000000;
         p.attribute.totalCoins = p.attribute.coins;
         p.attribute.diamonds = 10000000000;
-        p.fields[1] = {itemID:10003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(10003), updateTime : 0};
-        p.fields[1] = {itemID:20003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(20003), updateTime : 0};
-        p.fields[1] = {itemID:30003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(30003), updateTime : 0};
-        p.fields[1] = {itemID:40003, startTime:new Date().getTime(), growth:item.getSeedTotalValue(40003), updateTime : 0};
+        p.fields[3] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
+        p.fields[4] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
+        p.fields[5] = {itemID:30003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(30003), updateTime : 0};
+        p.fields[6] = {itemID:40003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(40003), updateTime : 0};
         p.addItem(10002, 6);
         p.addItem(20002, 6);
         p.addItem(30002, 6);
         p.addItem(40002, 6);
         p.saveItem();
         p.saveAttribute();
+        p.saveFields();
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify({uid : p.id, name : p.name, pic : p.pic })}));
     });
 };
@@ -45,14 +49,43 @@ playerHandler.addPlayer = function(req, res) {
 playerHandler.getPlayerInfo = function(req, res) {
     var id = req.body.uid;
     console.log(req.body.uid);
+    var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (p != null) {
-        console.log('found player: ', req.body.uid);
+        log.writeDebug(p.id + "|" + 'get player info');
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
         return;
     } else {
-        console.log("redis player");
+        var egretPlayer = null;
         async.waterfall([
+            /*
+            function(cb) {
+                egret.getUserInfo(params.token, cb);
+            },
+            function(egret, cb) {
+                if (egret.code) {
+                    res.end(JSON.stringify({cmdID: req.body.cmdID, ret : egret.code}));
+                    return;
+                }
+                egretPlayer = egret;
+                redisClient.getKey(egret.id, cb);
+            },function(redis, cb) {
+                if (redis == null) {
+                    p = new playerModel();
+                    p.register(egretPlayer);
+                    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify(p.getLoginJson())}));
+                    return;
+                } else {
+                    p = new playerModel();
+                    p.initFromDB(JSON.parse(redis));
+                    playerSystem.addPlayer(p);
+                    console.log('get redis: ', redis);
+                    console.log(p);
+                    redisClient.hget(p.id + code.GAME_NAME, "item", cb);
+                }
+            },
+            */
+
             function(cb) {
                 redisClient.getKey(req.body.uid, cb);
             }, function(redis, cb) {
@@ -60,8 +93,6 @@ playerHandler.getPlayerInfo = function(req, res) {
                     p = new playerModel();
                     p.initFromDB(JSON.parse(redis));
                     playerSystem.addPlayer(p);
-                    console.log('get redis: ', redis);
-                    console.log(p);
                     redisClient.hget(p.id + code.GAME_NAME, "item", cb);
                 } else {
                     res.end(JSON.stringify({cmdID: req.body.cmdID, ret:code.NOT_FIND_PALYER_ERROR}));
@@ -70,13 +101,11 @@ playerHandler.getPlayerInfo = function(req, res) {
             }, function(redis, cb) {
                 if (redis != null) {
                     p.initItem(JSON.parse(redis));
-                    console.log(p.bag);
                 }
                 redisClient.hget(p.id + code.GAME_NAME, "fields", cb);
             }, function(redis, cb) {
                 if (redis != null) {
                     p.initFields(JSON.parse(redis));
-                    console.log(p.fields);
                 }
                 redisClient.hget(p.id + code.GAME_NAME, "attribute", cb);
             }, function(redis, cb) {
@@ -93,7 +122,6 @@ playerHandler.getPlayerInfo = function(req, res) {
             }, function(redis, cb) {
                 if (redis != null) {
                     p.cliSetData = JSON.parse(redis);
-                    console.log('cli set data', p.cliSetData);
                 }
                 redisClient.hget(p.id + code.GAME_NAME, "fieldsAttribute", cb);
             }, function(redis, cb) {
@@ -119,10 +147,12 @@ playerHandler.getPlayerInfo = function(req, res) {
             }
         ], function(err) {
             if (err != null) {
-                console.log('get redis error');
+                log.writeErr(req.body.cmdID + '|' + 'redis err');
             } else {
                 p.dealSeedOffline();
+                p.dealofflineCoins();
                 p.dealDayValue();
+                log.writeDebug('login ' + p.id);
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
             }
         });
@@ -134,26 +164,26 @@ playerHandler.buyItem = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     for (var key in params) {
         if (!dataapi.seed.findById(parseInt(key))) {
-            console.log(params.itemID, " not exist");
+            log.writeErr(p.id + '|' + req.body.cmdID + "item error "  + parseInt(key));
             p.sendError(req, res, code.ITEM_ERROR.NOT_EXIST_ITEM);
             return;
         }
         var seed = dataapi.seed.findById(parseInt(key));
-        console.log("seed ", seed, seed.hasOwnProperty('moneyType'));
         if (seed.moneyType == null || seed.moneyType == 0) {
             if (p.attribute.coins < seed.buy * params[key]) {
-                console.log("coins not enough!");
+                log.writeErr(p.id + '|' + req.body.cmdID + "coins not enough "  + '|' + p.attribute.coins + '|' + seed.buy * params[key]);
                 p.sendError(req, res, code.ITEM_ERROR.NOT_ENOUGH_COINS_BUY_ITEM);
                 return;
             }
         } else {
             if (p.attribute.diamonds < seed.buy * params[key]) {
-                console.log("diamonds not enough!");
+                log.writeErr(p.id + '|' + req.body.cmdID + "diamonds not enough "  + '|' + p.attribute.diamonds + '|' + seed.buy * params[key]);
                 p.sendError(req, res, code.ITEM_ERROR.DOMAIN_NOT_ENOUGH);
                 return;
             }
@@ -167,16 +197,19 @@ playerHandler.buyItem = function(req, res) {
         } else {
             p.reduceDiamonds(seed.buy * params[key]);
         }
-        var seedRandomID = item.getSeedRandom(parseInt(key));
-        if (seedRandomID != -1) {
-            if (seedRandomID != 0) {
-                p.addItem(seedRandomID, params[key]);
+        if (item.checkRandSeed(parseInt(key))) {
+            for (var count = 0; count < params[key]; count++) {
+                var seedRandomID = item.getSeedRandom(parseInt(key));
+                if (seedRandomID != 0) {
+                    p.addItem(seedRandomID, 1);
+                    buyItem[seedRandomID] = buyItem[seedRandomID] == null ? 1 : buyItem[seedRandomID] + 1;
+                }
             }
         } else {
             p.addItem(parseInt(key), params[key]);
             seedRandomID = parseInt(key);
+            buyItem[parseInt(key)] = buyItem[parseInt(key)] == null ?  params[key] : buyItem[parseInt(key)] + params[key];
         }
-        buyItem[seedRandomID] = params[key];
     }
     p.saveAttribute();
     p.saveItem();
@@ -186,6 +219,7 @@ playerHandler.buyItem = function(req, res) {
 playerHandler.getBag = function (req, res) {
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -196,6 +230,7 @@ playerHandler.plant = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -205,14 +240,15 @@ playerHandler.plant = function(req, res) {
             return;
         }
         if (p.getItemAmount[params[key]] < 0) {
-            p.sendError(req, res, code.NOT_FIND_PALYER_ERROR);
+            log.writeErr(p.id + '|' + req.body.cmdID + "item not enough "  + '|' + params[key]);
+            p.sendError(req, res, code.ITEM_ERROR.ITEM_NOT_ENOUGH);
             return;
         }
     }
 
     for (var key in params) {
         p.reduceItem(params[key], 1);
-        p.fields[key] = {itemID:params[key], startTime:new Date().getTime(), growth:0, updateTime : new Date().getTime()};
+        p.fields[key] = {itemID:params[key], startTime:utils.getSecond(), growth:0, updateTime : utils.getSecond()};
     }
     p.saveFields();
     p.saveItem();
@@ -223,11 +259,11 @@ playerHandler.harvest = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     for (var key in params.fields) {
-        console.log("harvest ", key, params.fields[key]);
         if (p.fields.hasOwnProperty(params.fields[key])) {
             var seed = dataapi.seed.findById(p.fields[params.fields[key]].itemID);
             var values = seed.time.split('/');
@@ -236,18 +272,19 @@ playerHandler.harvest = function(req, res) {
                 needGrowth += parseInt(values[idx]);
             }
             if (needGrowth > p.fields[params.fields[key]].growth) {
-                console.log("check growth", needGrowth, p.fields[params.fields[key]].growth);
+                log.writeErr(p.id + '|' + req.body.cmdID + "growth not enough "  + '|' + p.fields[params.fields[key]].itemID + "|" + needGrowth + '|' + p.fields[params.fields[key]].growth);
                 p.sendError(req, res, code.PLANT.NOT_ENOUGH_TO_HARVEST);
                 return;
             }
         } else {
+            log.writeErr(p.id + '|' + req.body.cmdID + "fields not exist "  + '|' + params.fields[key]);
             p.sendError(req, res, code.PLANT.NOT_HAVE_ITEM_IN_FIELD);
             return;
         }
     }
     for (var key in params.fields) {
         var seed = dataapi.seed.findById(p.fields[params.fields[key]].itemID);
-        p.attribute.attack += seed.attack;
+        p.attribute.atk += seed.attack;
         p.attribute.def += seed.defense;
         p.attribute.hp += seed.hp;
         p.attribute.coins += seed.harvest;
@@ -265,6 +302,7 @@ playerHandler.getRank = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -273,13 +311,13 @@ playerHandler.getRank = function(req, res) {
         function(cb) {
             redisClient.zrevrank(code.GAME_NAME + params.rankName, p.id, cb);
         },function(redis, cb) {
-            console.log("selfRank ", redis);
             if (redis != null) {
                 selfRank = redis;
             }
             redisClient.zrevrange(code.GAME_NAME + params.rankName, params.startID, params.endID, cb);
         }, function(redis, cb) {
             res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({selfRank : selfRank, fields : JSON.stringify(redis)})}));
+            return;
         }
     ], function(err, result) {
         if (err) {
@@ -292,16 +330,17 @@ playerHandler.addGrowth = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     for (var key in p.fields) {
-        var now = new Date().getTime();
-        if (now - p.fields[key].updateTime < params.addvaule / 10) {
-            params.addvaule = (now - p.fields[key].updateTime) * 10;
+        var now = utils.getSecond();
+        if (params.addvaule > (now - p.fields[key].updateTime) * 30) {
+            params.addvaule = (now - p.fields[key].updateTime) * 30;
         }
         p.fields[key].growth += params.addValue;
-        p.fields[key].updateTime = new Date().getTime();
+        p.fields[key].updateTime = utils.getSecond();
         if (p.fields[key].growth > item.getSeedTotalValue(p.fields[key].itemID)) {
             p.fields[key].growth = item.getSeedTotalValue(p.fields[key].itemID);
         }
@@ -314,34 +353,35 @@ playerHandler.buyAccelerateGrowth = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     var num = 0;
     for (var key in params) {
-        var elem = dataapi.commodity.findById(key);
+        var elem = dataapi.shopList.findById(key);
         if (!elem) {
-            console.log('cannot find elem', key);
-            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+            log.writeErr(p.id + '|' + req.body.cmdID + "shop key not exist "  + '|' + key);
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.ITEM_ERROR.NOT_EXIST_ITEM}));
             return;
         }
         num += elem.price * params[key];
     }
 
     if (!p.reduceDiamonds(num)) {
-        console.log('domain not enough');
+        log.writeErr(p.id + '|' + req.body.cmdID + "diamonds not enough "  + '|' + num);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.ITEM_ERROR.DOMAIN_NOT_ENOUGH}));
         return;
     }
     for (var key in params) {
         if (!!p.fieldsAttribute[key]) {
-            if (p.fieldsAttribute[key] < new Date().getTime()) {
-                p.fieldsAttribute[key] = new Date().getTime() + params[key] * 20;
+            if (p.fieldsAttribute[key] < utils.getSecond) {
+                p.fieldsAttribute[key] = utils.getSecond() + params[key] * 20;
             } else {
                 p.fieldsAttribute[key] += params[key] * 20;
             }
         } else {
-            p.fieldsAttribute[key] = new Date().getTime() + params[key] * 20;
+            p.fieldsAttribute[key] = utils.getSecond() + params[key] * 20;
         }
     }
     p.saveFieldsAttribute();
@@ -353,17 +393,19 @@ playerHandler.buyFields = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     var elem = dataapi.other.findById('openDiCost');
     var needCoins = elem.val.split('/');
-    console.log("needCoins ", needCoins, p.attribute.maxFieldNum);
     if (p.attribute.maxFieldNum > needCoins.length) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "out max fields "  + '|' + p.attribute.maxFieldNum);
         p.sendError(req, res, code.ITEM_ERROR.HAVE_GOT_MAX_FIELDS);
         return;
     }
     if (!p.reduceCoins(parseInt(needCoins[p.attribute.maxFieldNum - 1]))) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "coins not enough "  + '|' + needCoins[p.attribute.maxFieldNum - 1]);
         p.sendError(req, res, code.ITEM_ERROR.NOT_ENOUGH_COINS_BUY_ITEM);
         return;
     }
@@ -376,17 +418,19 @@ playerHandler.upFieldLevel = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     var elem = dataapi.other.findById('diUpLevelCost');
     var values = elem.val.split('/');
-    console.log("values ", values, values.length);
     if (p.fieldsAttribute.fieldsLevel > values.length) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "out max fields level "  + '|' + p.fieldsAttribute.fieldsLevel);
         p.sendError(req, res, code.ITEM_ERROR.HAVE_GOT_MAX_LEVEL);
         return;
     }
     if (!p.reduceDiamonds(parseInt(values[p.fieldsAttribute.fieldsLevel - 1]))) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "diamonds not enough "  + '|' + num);
         p.sendError(req, res, code.ITEM_ERROR.DOMAIN_NOT_ENOUGH);
         return;
     }
@@ -400,6 +444,7 @@ playerHandler.selectSkill = function (req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -412,15 +457,18 @@ playerHandler.upSkillLevel = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     if (!p.checkSkillCanLevelUp(params.skillID)) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "skill cannot up "  + '|' + params.skillID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     var costNum = item.getSkillLevelUpCost(p.skills[params.skillID].lv);
     if (!p.reduceCoins(costNum)) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "skill up coins not enough "  + '|' + costNum);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -437,6 +485,7 @@ playerHandler.getServerTime = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
+    var nowTime = utils.getSecond();
     var addTime = params.totalTime > p.attribute.onlineTime ? p.attribute.onlineTime - params.retry_totaltime : 0;
     /*
     var nowTime = new Date().getTime();
@@ -450,6 +499,7 @@ playerHandler.getServerTime = function(req, res) {
     }
     */
     p.attribute.onlineTime = params.totalTime;
+    p.attribute.onlineUpdateTime = nowTime;
     p.saveAttribute();
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({now : nowTime})}));
 };
@@ -463,7 +513,6 @@ playerHandler.getSeveralPlayersInfo = function(req, res) {
                 if (redis != null) {
                     uidsInfo.push(redis);
                 }
-                console.log('get id ', id, redis);
                 callback(null);
             });
         }, function(err) {
@@ -492,7 +541,6 @@ playerHandler.getRankNearPlayers = function(req, res) {
         function(cb) {
             redisClient.zrevrank(code.GAME_NAME + params.rankName, p.id, cb);
         },function(redis, cb) {
-            console.log("selfRank ", redis);
             if (redis != null) {
                 selfRank = redis;
                 var startID = 0;
@@ -552,7 +600,7 @@ playerHandler.steal = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.PLANT.ID_NOT_IN_STEAL_RANK}));
         return;
     }
-    var nowTime = new Date().getTime();
+    var nowTime = utils.getSecond();
     var totalNum = 0;
     async.waterfall([
         function(cb) {
@@ -610,7 +658,7 @@ playerHandler.getPlayerMatureSeed = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    var nowTime = new Date().getTime();
+    var nowTime = utils.getSecond();
     var matureSeed = [];
     async.waterfall([
         function(cb) {
@@ -657,7 +705,7 @@ playerHandler.enterFight = function(req, res) {
         return;
     }
     p.fightInfo.id = params.id;
-    p.fightInfo.startTime = new Date().getTime();
+    p.fightInfo.startTime = utils.getSecond();
     if (params.mode == 1) {
         p.fightInfo.playerInitHp = p.fightInfo.posLeftHp = p.hp;
     } else if (params.mode == 2) {
@@ -704,10 +752,11 @@ playerHandler.checkFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    if (p.fightInfo.mode > 2) {
+    if (p.fightInfo.mode > 2 || p.fightInfo.mode == 0) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     }
+    /*
     var elem = dataapi.storyFight.findById(p.fightInfo.id);
     var data = JSON.parse(params.data);
     for (var key in data) {
@@ -748,13 +797,17 @@ playerHandler.checkFight = function(req, res) {
         p.updateFightNoHurt(updateTime);
    }
     var win = 0;
-    var nowTime = new Date().getTime();
+    var nowTime = utils.getSecond();
     if (p.fightInfo.posRightHp < p.fightInfo.bossInitHp * 0.1 && nowTime - p.fightInfo.startTime < 70) {
         console.log('succ');
         win = 1;
     }
-    if (win == params.win) {
-        var starNum = item.getStarNum(p, p.fightInfo.id, nowTime - p.fightInfo.startTime, p.fightInfo.mode);
+    */
+    //if (win == params.win) {
+    if (params.win) {
+        var starNum = item.getStarNum(p, p.fightInfo.id, utils.getSecond() - p.fightInfo.startTime, p.fightInfo.mode);
+        var elem = dataapi.storyFight.findById(p.fightInfo.id);
+        p.updateFightID(p.fightInfo.mode, p.fightInfo.id);
         p.attribute.starNum += starNum;
         p.addCoins(elem.awardCoin);
         p.addItem(elem.awardItem, 1);
@@ -766,10 +819,10 @@ playerHandler.checkFight = function(req, res) {
             p.attribute.bossFightHp = p.fightInfo.posLeftHp;
         }
         event.emit('fight', p, starNum);
-        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, reward : JSON.stringify({awardCoin : elem.awardCoin, awardItem : elem.awardItem, awardMi : elem.awardMi, bossFightHp : p.attribute.bossFightHp})}));
-
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams :  JSON.stringify({awardCoin : elem.awardCoin, awardItem : elem.awardItem, awardMi : elem.awardMi,
+                               fightResult : params.win, bossFightHp : p.attribute.bossFightHp, starNum : starNum, finishTask : p.attribute.finishTask, bossFinishTask : p.attribute.bossFinishTask})}));
     } else {
-        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.FIGHT.FITHT_LOST}));
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams : JSON.stringify({fightResult : params.win})}));
     }
     p.clearFightInfo();
 };
@@ -809,8 +862,6 @@ playerHandler.buyShopList = function (req, res) {
         } else {
             p.reduceDiamonds(seed.price * params[key]);
         }
-        console.log('key  ', key);
-        console.log(shopList[key]);
         shopList[key](p, params[key]);
     }
     res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify({attribute : JSON.stringify(p.attribute)})}));

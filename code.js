@@ -14,6 +14,7 @@ module.exports = {
         NOT_EXIST_ITEM : 6000,
         NOT_ENOUGH_COINS_BUY_ITEM : 6001,
         DOMAIN_NOT_ENOUGH : 6002,
+        ITEM_NOT_ENOUGH : 6003
     },
     PLANT : {
         NOT_ENOUGH_TO_HARVEST : 7000,

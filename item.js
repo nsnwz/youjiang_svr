@@ -51,6 +51,14 @@ item.getSkillAddValue = function(lv) {
     }
 };
 
+item.checkRandSeed = function (id) {
+    var elem = dataapi.seedRandom.findById(id);
+    if (elem == null) {
+        return false;
+    }
+    return true;
+};
+
 item.getSeedRandom = function(id) {
     var elem = dataapi.seedRandom.findById(id);
     if (elem == null) {
@@ -71,10 +79,9 @@ item.getSeedRandom = function(id) {
 
 item.getStarNum = function(p, id, time, mode) {
     if (mode == 2) {//pve无尽模式
-        if (p.attribute.bossFinishTask + 1 ==id) {
+        if (p.attribute.bossFinishTask + 1 == id) {
             var elem = dataapi.bossFight.findById(id);
             if (elem) {
-                p.attribute.bossFinishTask = id;
                 return elem.star;
             }
             return 0;

@@ -59,3 +59,7 @@ utils.get0Today = function(){
     zeroToday.setHours(0,0,0,0);
     return (Math.round(zeroToday.getTime() / 1000));
 };
+
+utils.getSecond = function() {
+    return parseInt(new Date().getTime() / 1000);
+};

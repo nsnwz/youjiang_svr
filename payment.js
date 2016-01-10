@@ -5,13 +5,14 @@
 var md5 = require('md5');
 var api = require('beecloud-node-dev');
 var payConfig = require('./config/payment');
+var utils = require('./utils')
 
 var payment = module.exports;
 
 payment.pay = function(res, req) {
     var app_id = payConfig.appid;
     var app_secret =  payConfig.appsecret;
-    var timestamp = new Date().getTime();
+    var timestamp = utils.getSecond();
     var app_sign = md5(app_id + timestamp + app_secret);
     var data = {
         app_id : app_id,

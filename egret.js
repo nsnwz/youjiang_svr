@@ -8,6 +8,7 @@ var http = require('http');
 var https = require('https');
 var util = require('util');
 var crypto = require('crypto');
+var utils = require('./utils');
 
 var appId = "89846";
 var appKey = "9gK85qgWqpwuKfMaLna6P"
@@ -74,7 +75,7 @@ var post = function(urlstr, obj, callback) {
 egret.getUserInfo = function(token, callback) {
     var obj = {
         token : token,
-        time : new Date().getTime(),
+        time : utils.getSecond(),
         appId : appId
     };
     obj.sign = createSign(obj, appKey);
@@ -82,7 +83,8 @@ egret.getUserInfo = function(token, callback) {
     post(urlstr, obj, callback);
     console.log('obj ...', obj);
 };
-
-egret.getUserInfo("58990fggggggjhdfjfjd3UIca86", function(str) {
+/*
+egret.getUserInfo("58990123456767", function(str) {
     console.log('str ..', str);
 });
+    */

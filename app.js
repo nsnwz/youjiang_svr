@@ -29,7 +29,8 @@ var httpServer = http.createServer(function (req, res) {
             res.setHeader("Access-Control-Allow-Origin", "*");
             try {
                 req.body = JSON.parse(body.toString('utf-8'));
-                console.log("req.body ", req.body);
+                log.writeDebug(req.body.uid + '|' + req.body.cmdID + '|' + req.body.cmdParams);
+                console.log(req.body.uid + '|' + req.body.cmdID + '|' + req.body.cmdParams);
                 if (typeof cmds[req.body.cmdID] == 'function') {
                     cmds[req.body.cmdID](req, res);
                 } else {
@@ -37,21 +38,21 @@ var httpServer = http.createServer(function (req, res) {
                 }
             } catch(err) {
                 var errorMsg = 'Error ' + new Date().toISOString() + req.body + err.stack + err.message;
-                console.log(errorMsg);
+                log.writeErr(errorMsg);
                 res.end(JSON.stringify({ret:code.SYSTEM_ERROR}));
             }
         }
 
     });
     req.on('error', function (err) {
-        console.log("request from client err ", err);
+        log.writeErr("request from client err ", err);
     });
 });
 
 httpServer.listen(80);
 log.writeInfo("server start");
-console.log('server start ');
+
 
 process.on('uncaughtException', function (err) {
-    console.error(' Caught exception: ' + err.stack);
+    log.writeErr(' Caught exception: ', err.stack);
 });

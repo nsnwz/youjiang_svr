@@ -11,6 +11,8 @@ var fieldSeed = require('./fieldSeed');
 var item = require('./item');
 var Task = require('./task');
 var event = require('./event');
+var utils = require('./utils');
+var log = require('./log.js').helper;
 
 /**
  * 用户数据信息
@@ -53,7 +55,8 @@ var player = function() {
                         onlineUpdateTime : 0, //在线时长更新时间(登入额时候设置为登入时间)
                         lastDoneRandEventOlTime : 0, //上次昨晚随机事件的在线时长(每天清除)
                         randEventTimes : 0, //随机事件的次数(每天清除)
-                        randEventID : 0 //随机到的事件(每天清除)
+                        randEventID : 0, //随机到的事件(每天清除)
+                        offlineCoins : 0 //离线增加的金钱数
                        }; //
     this.bag = {}; //背包
     this.fields = {}; //田块种植信息 (
@@ -121,7 +124,7 @@ player.prototype.initFromDB = function(dbrecord) {
 };
 
 player.prototype.getLoginJson = function() {
-    var nowTime = new Date().getTime();
+    var nowTime = utils.getSecond();
     return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
     fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime});
 };
@@ -225,9 +228,11 @@ player.prototype.reduceDiamonds = function(num) {
 
 player.prototype.checkCanPlant = function(fieldID) {
     if (fieldID > this.attribute.maxFieldNum * 6) {
-      return false;
+        log.writeErr(this.id + "|" + "field out max" + "|" + fieldID + '|' + this.attribute.maxFieldNum * 6);
+        return false;
     }
     if (this.fields.hasOwnProperty(fieldID) && this.fields[fieldID].itemID) {
+        log.writeErr(this.id + "|" + "have item" + "|" + fieldID );
         return false;
     }
     return true;
@@ -250,7 +255,7 @@ player.prototype.sendError = function(req, res, errorCode) {
 };
 
 player.prototype.dealSeedOffline = function() {
-    var now = new Date().getTime();
+    var now = utils.getSecond();
     for (var key in this.fields) {
         if (this.fields[key].updateTime < now) {
             this.fields[key].growth += now - this.fields[key].updateTime;
@@ -260,6 +265,14 @@ player.prototype.dealSeedOffline = function() {
         }
     }
     this.saveFields();
+};
+
+player.prototype.dealofflineCoins = function() {
+    var now = utils.getSecond();
+    var diffTime = now > this.attribute.onlineUpdateTime ? now - this.attribute.onlineUpdateTime : 0;
+    var addHour = parseInt(diffTime / (60 * 60)) > 5 ? 5 : parseInt(diffTime / (60 * 60));
+    this.attribute.offlineCoins = addHour * 200000;
+    this.addCoins(addHour * 200000);
 };
 
 player.prototype.setSkillSelected = function(skillID) {
@@ -309,7 +322,7 @@ player.prototype.dealDayValue = function() {
         this.attribute.bossFightHp = -1;
         this.attribute.mmod = parseInt(Math.random() * 2 + 1);
         this.attribute.onlineTime = 0;
-        this.attribute.onlineUpdateTime = new Date().getTime();
+        this.attribute.onlineUpdateTime = utils.getSecond();
         this.attribute.lastDoneRandEventOlTime = 0;
         this.attribute.randEventTimes = 0;
         this.attribute.randEventID = 0;
@@ -458,5 +471,40 @@ player.prototype.reducePower = function(mode) {
     return true;
 
 };
+
+player.prototype.register = function(egretPlayer) {
+    this.id = egretPlayer.id;
+    this.name = egretPlayer.name;
+    this.pic = egretPlayer.pic;
+    this.saveBaseinfo();
+    this.attribute.coins = 100000000000000;
+    this.attribute.totalCoins = this.attribute.coins;
+    this.attribute.diamonds = 10000000000;
+    this.fields[1] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
+    this.fields[2] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
+    this.fields[3] = {itemID:30003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(30003), updateTime : 0};
+    this.fields[4] = {itemID:40003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(40003), updateTime : 0};
+    this.addItem(10002, 6);
+    this.addItem(20002, 6);
+    this.addItem(30002, 6);
+    this.addItem(40002, 6);
+    this.saveItem();
+    this.saveAttribute();
+    this.saveFields();
+    log.writeDebug('new' + this.id);
+};
+
+player.prototype.updateFightID = function(mode, id) {
+    if (mode == 1) {
+        if (id > this.attribute.finishTask && id == this.attribute.finishTask + 1) {
+            this.attribute.finishTask = id;
+        }
+    } else if (mode == 2) {
+        if (this.attribute.bossFinishTask + 1 == id) {
+            this.attribute.bossFinishTask = id;
+        }
+    }
+};
+
 
 module.exports = player;

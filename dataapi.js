@@ -113,8 +113,6 @@ Data.prototype.findSmaller = function(attr, value) {
  * @api public
  */
 Data.prototype.findById = function(id) {
-    console.log(id);
-    console.log(this.data);
     return this.data[id];
 };
 

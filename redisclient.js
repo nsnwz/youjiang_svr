@@ -23,7 +23,7 @@ var redisDB = connect();
 var redis = module.exports;
 
 redis.test = function() {
-    console.log("redis test");
+
 };
 
 redis.updateKey = function(sType, nScore, cb) {
@@ -76,7 +76,6 @@ redis.hget = function(sType, sField, cb) {
             console.log('hget error: ' + err.message);
             utils.invokeCallback(cb, err.message, null);
         } else {
-            console.log("hget succ" + sType + sField);
             utils.invokeCallback(cb, null, res);
         }
     });
@@ -101,8 +100,7 @@ redis.zadd = function(sType, score, member, cb) {
             console.log('zadd error ' + err.message);
             utils.invokeCallback(cb, err.message, null);
         } else {
-            utils.invokeCallback(cb, null, res);
-            console.log("zadd ok!");
+            utils.invokeCallback(cb, null, res);           ;
         }
     });
 };
@@ -115,7 +113,6 @@ redis.zrevrange = function(sType, start, end, cb) {
             utils.invokeCallback(cb, err.message, null);
         } else {
             utils.invokeCallback(cb, null, res);
-            console.log("zrevrange ok");
         }
     });
 };
@@ -128,7 +125,6 @@ redis.zincrby = function(sType, increment, member, cb) {
             utils.invokeCallback(cb, err.message, null);
         } else {
             utils.invokeCallback(cb, null, res);
-            console.log("zincrby ok");
         }
     });
 };
@@ -140,7 +136,6 @@ redis.zrevrank = function(sType, member, cb) {
             utils.invokeCallback(cb, err.message, null);
         } else {
             utils.invokeCallback(cb, null, res);
-            console.log("zincrby ok");
         }
     });
 };
@@ -152,7 +147,6 @@ redis.zcount = function(sType, min, max, cb) {
             utils.invokeCallback(cb, err.message, null);
         } else {
             utils.invokeCallback(cb, null, res);
-            console.log("zincrby ok");
         }
     });
 };
