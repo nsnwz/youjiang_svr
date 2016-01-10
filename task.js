@@ -48,14 +48,6 @@ var task = function() {
                          }};
                   };
 
-task.prototype.clearDayTask = function() {
-  for (var key in this.task.day) {
-      for (var idx in this.task.day[key]) {
-          this.task.day[key][idx] = 0;
-      }
-  }
-};
-
 task.prototype.updateTask10001 = function(itemID) {
     if (item.getSeedType(itemID) == 1) {
         this.task.day[10001].num += 1;
@@ -341,8 +333,9 @@ task.prototype.updateTask = {
     40002: updateTaskFinType1,
     40003: updateTaskFinType1,
     40004: updateTaskFinType1,
-    40005: updateTaskFinType1,
-   100000: updateTaskFinType1
+    40005: updateTaskFinType1
+
+
 };
 
 task.prototype.updateTaskFin = function(taskID) {

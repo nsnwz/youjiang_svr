@@ -53,7 +53,7 @@ var player = function() {
                         onlineUpdateTime : 0, //在线时长更新时间(登入额时候设置为登入时间)
                         lastDoneRandEventOlTime : 0, //上次昨晚随机事件的在线时长(每天清除)
                         randEventTimes : 0, //随机事件的次数(每天清除)
-                        randEventID : 0, //随机到的事件(每天清除)
+                        randEventID : 0 //随机到的事件(每天清除)
                        }; //
     this.bag = {}; //背包
     this.fields = {}; //田块种植信息 (
@@ -313,7 +313,11 @@ player.prototype.dealDayValue = function() {
         this.attribute.lastDoneRandEventOlTime = 0;
         this.attribute.randEventTimes = 0;
         this.attribute.randEventID = 0;
-        this.task.clearDayTask();
+        for (var key in this.task.task.day) {
+            for (var idx in this.task.task.day[key]) {
+                this.task.task.day[key][idx] = 0;
+            }
+        }
         this.attribute.cleanDayTime = today;
     }
     this.saveAttribute();

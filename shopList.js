@@ -17,8 +17,8 @@ var shopList =  {
         p.saveSkills();
     },
     600008 : function(p, num) {
-        var mood = [[1, 2], [0, 2], [0, 1]];
-        p.attribute.mood = mood[p.attribute.mood][Math.floor(Math.random() * ( 1 + 1))]
+        var mood = [[2, 3], [1, 3], [1, 2]];
+        p.attribute.mood = mood[p.attribute.mood - 1][parseInt(Math.random() * 2)]
         p.saveAttribute();
     }
 };
