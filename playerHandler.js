@@ -290,6 +290,7 @@ playerHandler.harvest = function(req, res) {
             }
             if (needGrowth - 100 > (p.fields[params.fields[key]].growth)) {
                 log.writeErr(p.id + '|' + req.body.cmdID + "growth not enough "  + '|' + p.fields[params.fields[key]].itemID + "|" + needGrowth + '|' + p.fields[params.fields[key]].growth);
+		log.writeErr(key + "|" + typeof p.fields[params.fields[key]].growth + "|" + p.fields[params.fields[key]].growth);
                 p.sendError(req, res, code.PLANT.NOT_ENOUGH_TO_HARVEST);
                 return;
             }
@@ -612,6 +613,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
     }
     async.waterfall([
         function(cb) {
+	    log.writeDebug(code.GAME_NAME + params.rankName + p.id);
             redisClient.zrevrank(code.GAME_NAME + params.rankName, p.id, cb);
         },function(redis, cb) {
             if (redis != null) {
@@ -621,6 +623,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 if (selfRank > 50) {
                     startID -= 50;
                 }
+
                 redisClient.zrevrange(code.GAME_NAME + params.rankName, startID, endID, cb);
             } else {
                 redisClient.zcount(code.GAME_NAME + params.rankName, '-inf', '+inf', function(err, redis) {
@@ -629,6 +632,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
                     if (count > 100) {
                         startID = count - 100;
                     }
+
                     redisClient.zrevrange(code.GAME_NAME + params.rankName, startID, count, cb);
                 })
             }
@@ -656,6 +660,8 @@ playerHandler.getRankNearPlayers = function(req, res) {
                     p.stealInfo.push(rank[i]);
                 }
             }
+	
+  	    log.writeDebug(p.stealInfo);
             p.saveStealInfo();
             res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo), selfRank:selfRank})}));
         }
@@ -944,8 +950,13 @@ playerHandler.checkFight = function(req, res) {
                 addItem = elem.awardItem;
             } else {
                 addCoins = parseInt(elem.awardCoin * 0.1);
+		if (elem.awardMi) {
+                	var lastElem = dataapi.bossFight.findById(p.fightInfo.id - 1);
+			if (lastElem) {
+				addCoins += Math.floor(lastElem.awardCoin * 0.12);
+			}
+		}
                 //addMi = parseInt(elem.awardMi * 0.1);
-                addMi = parseInt(5);
             }
             p.addCoins(addCoins);
             p.addItem(addItem, 1);
