@@ -313,11 +313,7 @@ player.prototype.dealDayValue = function() {
         this.attribute.lastDoneRandEventOlTime = 0;
         this.attribute.randEventTimes = 0;
         this.attribute.randEventID = 0;
-        for (var key in this.task.task.day) {
-            for (var idx in this.task.task.day[key]) {
-                this.task.task.day[key][idx] = 0;
-            }
-        }
+        this.task.cleanDayTask();
         this.attribute.cleanDayTime = today;
     }
     this.saveAttribute();

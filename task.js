@@ -48,6 +48,14 @@ var task = function() {
                          }};
                   };
 
+task.prototype.cleanDayTask = function() {
+    for (var key in this._task.day) {
+        for (var idx in this._task.day[key]) {
+            this._task.day[key][idx] = 0;
+        }
+    }
+};
+
 task.prototype.updateTask10001 = function(itemID) {
     if (item.getSeedType(itemID) == 1) {
         this._task.day[10001].num += 1;
