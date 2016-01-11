@@ -44,7 +44,10 @@ var task = function() {
                           40002 : {num : 0, FinNum : 0},
                           40003 : {num : 0, FinNum : 0},
                           40004 : {num : 0, FinNum : 0},
-                          40005 : {num : 0, FinNum : 0}
+                          40005 : {num : 0, FinNum : 0},
+                          100000 : {num : 0, FinNum : 0}
+
+
                          }};
                   };
 
@@ -287,8 +290,8 @@ task.prototype.checkFinTask = function(p, taskID) {
     if (!ele) {
         return false;
     }
-    console.log('taskCheck ', this._taskCheck);
-    return this._taskCheck[taskID](this._task, taskID, ele);
+    console.log('taskCheck ', this.taskCheck);
+    return this.taskCheck[taskID](this._task, taskID, ele);
 };
 
 function updateTaskFinType1 (task, taskID, ele) {

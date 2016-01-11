@@ -9,11 +9,11 @@ var shopList =  {
         p.saveAttribute();
     },
     600006 : function(p, num) {
-        p.skills[20001].useTimes++;
+        p.skills[20001].useTimes += num;
         p.saveSkills();
     },
     600007 : function(p, num) {
-        p.skills[20002].useTimes++;
+        p.skills[20002].useTimes += num;
         p.saveSkills();
     },
     600008 : function(p, num) {

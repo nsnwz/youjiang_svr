@@ -49,7 +49,7 @@ var httpServer = http.createServer(function (req, res) {
     });
 });
 
-httpServer.listen(80);
+httpServer.listen(8000);
 log.writeInfo("server start");
 
 

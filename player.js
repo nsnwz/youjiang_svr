@@ -126,7 +126,7 @@ player.prototype.initFromDB = function(dbrecord) {
 player.prototype.getLoginJson = function() {
     var nowTime = utils.getSecond();
     return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
-    fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime});
+    fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime, skills : JSON.stringify(this.skills)});
 };
 
 player.prototype.initItem = function(dbrecord) {
@@ -277,7 +277,7 @@ player.prototype.dealofflineCoins = function() {
 
 player.prototype.setSkillSelected = function(skillID) {
     for (var key in this.skills) {
-        if (this.skills[key].hasOwnProperty('selected')) {
+        if (this.skills[key].hasOwnProperty('selected') && (parseInt(key / 10000) == parseInt(skillID / 10000))) {
             if (key == skillID) {
                 this.skills[key].selected = true;
             } else {
@@ -359,7 +359,6 @@ player.prototype.reduceStealNum = function() {
 };
 
 player.prototype.checkStealID = function(id) {
-    console.log("stealInfo ", this.stealInfo);
     for (var key in this.stealInfo) {
         if (this.stealInfo[key] == id && key % 2 == 0) {
             return true;
@@ -422,7 +421,7 @@ player.prototype.updateFightNoHurt = function(updateTime) {
 player.prototype.clearFightInfo = function () {
         this.fightInfo.mode = 0;
         this.fightInfo.id  = 0;
-        tis.figithInfo.startTime = 0;
+        this.figithInfo.startTime = 0;
         this.fightInfo.playerInitHp = 0;
         this.fightInfo.bossInitHp = 0;
         this.fightInfo.playerInitAtk = 0;

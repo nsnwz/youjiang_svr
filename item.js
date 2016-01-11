@@ -89,15 +89,17 @@ item.getStarNum = function(p, id, time, mode) {
             return 0;
         }
     } else {//pve剧情模式
-        var elem = dataapi.storyFight.findById(id);
-        if (elem == null) {
-            return 0;
-        }
-        var fightStarTime = dataapi.other.findById('fightStarTime').val.split('/');
-        var fightStarRandom = dataapi.other.findById('fightStarRandom').val.split('/');
-        for (var key in fightStarTime) {
-            if (time < fightStarTime[key]) {
-                return (elem.star * fightStarRandom[key] / 3);
+        if (id <= p.attribute.finishTask + 1) {
+            var elem = dataapi.storyFight.findById(id);
+            if (elem == null) {
+                return 0;
+            }
+            var fightStarTime = dataapi.other.findById('fightStarTime').val.split('/');
+            var fightStarRandom = dataapi.other.findById('fightStarRandom').val.split('/');
+            for (var key in fightStarTime) {
+                if (time < fightStarTime[key]) {
+                    return (elem.star * fightStarRandom[key] / 3);
+                }
             }
         }
     }

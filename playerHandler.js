@@ -336,8 +336,8 @@ playerHandler.addGrowth = function(req, res) {
     }
     for (var key in p.fields) {
         var now = utils.getSecond();
-        if (params.addvaule > (now - p.fields[key].updateTime) * 30) {
-            params.addvaule = (now - p.fields[key].updateTime) * 30;
+        if (params.addValue > (now - p.fields[key].updateTime) * 30) {
+            params.addValue = (now - p.fields[key].updateTime) * 30;
         }
         p.fields[key].growth += params.addValue;
         p.fields[key].updateTime = utils.getSecond();
@@ -482,6 +482,7 @@ playerHandler.getServerTime = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -529,6 +530,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -589,14 +591,17 @@ playerHandler.steal = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     if (!p.checkStealNum()) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "steam num not enough "  + '|' + p.attribute.freeStealNumUsed + '|' + p.attribute.buyStealNumLeft);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.PLANT.NOT_ENOUGH_STEAL_NUM}));
         return;
     }
     if (!p.checkStealID(params.id)) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "steam id not in steal "  + '|' + params.id);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.PLANT.ID_NOT_IN_STEAL_RANK}));
         return;
     }
@@ -643,10 +648,12 @@ playerHandler.steal = function(req, res) {
 playerHandler.getStealMePlayers = function(req, res) {
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     redisClient.hget(p.id + code.GAME_NAME, 'stealMePlayers', function(err, redis) {
+        p.stealMePlayers = JSON.parse(redis);
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({stealInfo: redis})}));
     });
 };
@@ -655,6 +662,7 @@ playerHandler.getPlayerMatureSeed = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -682,27 +690,34 @@ playerHandler.enterFight = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
     if (!p.reducePower(params.mode)) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "power not enough "  + '|' + p.attribute.powerUsed + '|' + p.attribute.buyPowerNum);
         return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
     }
+    p.fightInfo.mode = params.mode;
+    p.fightInfo.id = params.id;
     if (params.mode > 2) { //mode 1表示pve剧情模式，2表示pve无尽模式，800pve引导模式，801PVE随机事件，10PVP战斗模式
-        p.fightInfo.id = 1;
-        p.fightInfo.mode = params.mode;
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     }
-    p.fightInfo.mode = 1;
-    if (params.id != p.attribute.finishTask + 1) {
-        p.sendError(req, res, code.TASK.HAVE_NOT_FIN_PRE_TASK);
-        return;
-    }
-    var elem = dataapi.storyFight.findById(params.id)
-    if (elem == null) {
-        p.sendError(req, res, code.TASK.TASK_NOT_EXIST);
-        return;
+    if (params.mode == 1) {
+        var elem = dataapi.storyFight.findById(params.id)
+        if (elem == null) {
+            log.writeErr(p.id + '|' + req.body.cmdID + "task id not exist "  + '|' + params.id);
+            p.sendError(req, res, code.TASK.TASK_NOT_EXIST);
+            return;
+        }
+    } else if (params.mode == 2) {
+        var elem = dataapi.bossFight.findById(params.id)
+        if (elem == null) {
+            log.writeErr(p.id + '|' + req.body.cmdID + "boss task id not exist "  + '|' + params.id);
+            p.sendError(req, res, code.TASK.TASK_NOT_EXIST);
+            return;
+        }
     }
     p.fightInfo.id = params.id;
     p.fightInfo.startTime = utils.getSecond();
@@ -723,6 +738,7 @@ playerHandler.useSkill = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -749,6 +765,7 @@ playerHandler.checkFight = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
+        log.writeErr('no ol', req.body.uid + '|' + req.body.cmdID);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
@@ -806,9 +823,24 @@ playerHandler.checkFight = function(req, res) {
     //if (win == params.win) {
     if (params.win) {
         var starNum = item.getStarNum(p, p.fightInfo.id, utils.getSecond() - p.fightInfo.startTime, p.fightInfo.mode);
-        var elem = dataapi.storyFight.findById(p.fightInfo.id);
-        p.updateFightID(p.fightInfo.mode, p.fightInfo.id);
         p.attribute.starNum += starNum;
+        var elem;
+        if (p.fightInfo.mode == 2) {
+            if (p.attribute.bossFinishTask + 1 == p.fightInfo.id) {
+                elem = dataapi.bossFight.findById(p.fightInfo.id);
+                p.addCoins(elem.awardCoin);
+                p.addItem(elem.awardItem, 1);
+                p.addDiamonds(elem.awardMi);
+            }
+        } else if (p.fightInfo.mode == 1) {
+            var elem = dataapi.storyFight.findById(p.fightInfo.id);
+            //if (p.attribute.finishTask + 1 == p.fightInfo.id) {
+                p.addCoins(elem.awardCoin);
+                p.addItem(elem.awardItem, 1);
+                p.addDiamonds(elem.awardMi);
+            //}
+        }
+        p.updateFightID(p.fightInfo.mode, p.fightInfo.id);
         p.addCoins(elem.awardCoin);
         p.addItem(elem.awardItem, 1);
         p.addDiamonds(elem.awardMi);
@@ -864,7 +896,7 @@ playerHandler.buyShopList = function (req, res) {
         }
         shopList[key](p, params[key]);
     }
-    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify({attribute : JSON.stringify(p.attribute)})}));
+    res.end(JSON.stringify({cmdID:req.body.cmdID, ret:code.OK, cmdParams : JSON.stringify({attribute : JSON.stringify(p.attribute), skills : JSON.stringify(p.skills)})}));
 };
 
 playerHandler.setClientKeyValue = function(req, res) {
