@@ -21,6 +21,14 @@ item.getSeedTotalValue = function(seedID) {
     return 0;
 };
 
+item.getSeedCoins = function(seedID) {
+    var ele = dataapi.seed.findById(seedID);
+    if (!ele) {
+        return 0;
+    }
+    return ele.harvest;
+};
+
 item.getSkillMaxLevel = function() {
     var elem = dataapi.other.findById('skill1UpLevelCost');
     if (elem) {
@@ -64,7 +72,7 @@ item.getSeedRandom = function(id) {
     if (elem == null) {
         return -1;
     }
-    var seedRand = [elem.seed2Random, elem.seed3Random, elem.seed3Random, elem.seed4Random];
+    var seedRand = [elem.seed2Random, elem.seed3Random, elem.seed4Random, elem.seed5Random];
     var itemID = [elem.seed2, elem.seed3, elem.seed4, elem.seed5];
     var rand = Math.random();
     var sum = 0;
@@ -112,3 +120,4 @@ item.getSeedType = function(itemID) {
 item.getSeedLv = function(itemID) {
   return (itemID % 10);
 };
+

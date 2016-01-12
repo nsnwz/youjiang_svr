@@ -55,4 +55,5 @@ log.writeInfo("server start");
 
 process.on('uncaughtException', function (err) {
     log.writeErr(' Caught exception: ', err.stack);
+    console.log(' Caught exception: ', err.stack);
 });

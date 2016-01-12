@@ -4,6 +4,10 @@
 
 
 var shopList =  {
+    600004 : function(p, num) {
+        p.attribute.buyStealNumLeft += num * 5;
+        p.saveAttribute();
+    },
     600005 : function(p, num) {
         p.attribute.buyPowerNum += num * 10;
         p.saveAttribute();

@@ -273,6 +273,7 @@ player.prototype.dealofflineCoins = function() {
     var addHour = parseInt(diffTime / (60 * 60)) > 5 ? 5 : parseInt(diffTime / (60 * 60));
     this.attribute.offlineCoins = addHour * 200000;
     this.addCoins(addHour * 200000);
+    this.attribute.onlineUpdateTime = now;
 };
 
 player.prototype.setSkillSelected = function(skillID) {
@@ -400,8 +401,11 @@ player.prototype.checkCanUseSkill = function (id) {
 
 player.prototype.reduceSkillUseTimes = function(id) {
     for (var key in this.skills) {
-        if (id == key && this.skills[key].hasOwnProperty('useTimes') && this.skills[key].useTimes > 0
-            && this.skills[key].hasOwnProperty('selected') && this.skills[key].selected) {
+        if (id == parseInt(key)
+            && this.skills[key].hasOwnProperty('useTimes')
+            && this.skills[key].useTimes > 0
+            && this.skills[key].hasOwnProperty('selected')
+            && this.skills[key].selected) {
             this.skills[key].useTimes -= 1;
         }
     }

@@ -153,7 +153,12 @@ cmds = {
     /*
         CMD 得到任务信息
      */
-    1028 : playerHandler.getTaskInfo
+    1028 : playerHandler.getTaskInfo,
+    /*
+        CMD 摇一摇增加在线时长
+        {totalTime : }
+     */
+    1029 : playerHandler.addOnlineTime
 
 };
 
