@@ -271,7 +271,7 @@ playerHandler.harvest = function(req, res) {
             for (var idx in values) {
                 needGrowth += parseInt(values[idx]);
             }
-            if (needGrowth > p.fields[params.fields[key]].growth) {
+            if (needGrowth > (p.fields[params.fields[key]].growth > 100 ? p.fields[params.fields[key]].growth - 100 : 0)) {
                 log.writeErr(p.id + '|' + req.body.cmdID + "growth not enough "  + '|' + p.fields[params.fields[key]].itemID + "|" + needGrowth + '|' + p.fields[params.fields[key]].growth);
                 p.sendError(req, res, code.PLANT.NOT_ENOUGH_TO_HARVEST);
                 return;
@@ -575,6 +575,12 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 idx.length = 10;
                 for (var i = 0; i < idx.length; i++) {
                     p.stealInfo.push(redis[i]);
+                }
+            }
+            for (var key in p.stealInfo) {
+                if (p.stealInfo[key][0] == p.id) {
+                    delete p.stealInfo[key];
+                    break;
                 }
             }
             p.saveStealInfo();

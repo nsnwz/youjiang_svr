@@ -126,7 +126,7 @@ player.prototype.initFromDB = function(dbrecord) {
 player.prototype.getLoginJson = function() {
     var nowTime = utils.getSecond();
     return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
-    fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime, skills : JSON.stringify(this.skills)});
+    fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime , skills : JSON.stringify(this.skills)});
 };
 
 player.prototype.initItem = function(dbrecord) {
