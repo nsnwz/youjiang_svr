@@ -28,9 +28,9 @@ playerHandler.addPlayer = function(req, res) {
         p.name = params.name;
         p.pic = "1234";
         p.saveBaseinfo();
-        p.attribute.coins = 100000000000000;
+        p.attribute.coins = 10000000;
         p.attribute.totalCoins = p.attribute.coins;
-        p.attribute.diamonds = 10000000000;
+        p.attribute.diamonds = 200;
         p.fields[3] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
         p.fields[4] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
         p.fields[5] = {itemID:30003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(30003), updateTime : 0};
@@ -813,7 +813,7 @@ playerHandler.checkFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    if (p.fightInfo.mode > 2 || p.fightInfo.mode == 0) {
+    if ((p.fightInfo.mode > 2 || p.fightInfo.mode == 0) && (p.fightInfo.mode != 800)) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     }
@@ -867,14 +867,23 @@ playerHandler.checkFight = function(req, res) {
     //if (win == params.win) {
     if (params.win) {
         var starNum = item.getStarNum(p, p.fightInfo.id, utils.getSecond() - p.fightInfo.startTime, p.fightInfo.mode);
+        if (p.fightInfo.mode == 800) { //新手引导
+            starNum = 3;
+        }
         p.attribute.starNum += starNum;
         var elem;
+        var addCoins = 0;
+        var addMi = 0;
+        var addItem = 0;
         if (p.fightInfo.mode == 2) {
             if (p.attribute.bossFinishTask + 1 == p.fightInfo.id) {
                 elem = dataapi.bossFight.findById(p.fightInfo.id);
                 p.addCoins(elem.awardCoin);
                 p.addItem(elem.awardItem, 1);
                 p.addDiamonds(elem.awardMi);
+                addCoins = ele.awardCoin;
+                addMi = ele.awardMi;
+                addItem = ele.awardItem;
             }
         } else if (p.fightInfo.mode == 1) {
             var elem = dataapi.storyFight.findById(p.fightInfo.id);
@@ -882,12 +891,15 @@ playerHandler.checkFight = function(req, res) {
                 p.addCoins(elem.awardCoin);
                 p.addItem(elem.awardItem, 1);
                 p.addDiamonds(elem.awardMi);
+                addCoins = ele.awardCoin;
+                addMi = ele.awardMi;
+                addItem = ele.awardItem;
             //}
+        } else if (p.fightInfo.mode == 800){
+            p.addCoins(100000);
+            addCoins = 100000;
         }
         p.updateFightID(p.fightInfo.mode, p.fightInfo.id);
-        p.addCoins(elem.awardCoin);
-        p.addItem(elem.awardItem, 1);
-        p.addDiamonds(elem.awardMi);
         p.saveAttribute();
         p.saveItem();
         redisClient.zincrby(code.GAME_NAME + 'star', starNum, p.id, null);
@@ -895,7 +907,7 @@ playerHandler.checkFight = function(req, res) {
             p.attribute.bossFightHp = p.fightInfo.posLeftHp;
         }
         event.emit('fight', p, starNum);
-        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams :  JSON.stringify({awardCoin : elem.awardCoin, awardItem : elem.awardItem, awardMi : elem.awardMi,
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams :  JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
                                fightResult : params.win, bossFightHp : p.attribute.bossFightHp, starNum : starNum, finishTask : p.attribute.finishTask, bossFinishTask : p.attribute.bossFinishTask})}));
     } else {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams : JSON.stringify({fightResult : params.win})}));
