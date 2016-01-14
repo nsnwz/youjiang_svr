@@ -488,7 +488,7 @@ playerHandler.getServerTime = function(req, res) {
         return;
     }
     var nowTime = utils.getSecond();
-    var addTime = params.totalTime > p.attribute.onlineTime ? p.attribute.onlineTime - params.retry_totaltime : 0;
+    //var addTime = params.totalTime > p.attribute.onlineTime ? p.attribute.onlineTime - params.totaltime : 0;
     /*
     var nowTime = new Date().getTime();
     if (nowTime - p.attribute.onlineUpdateTime < 10) {
