@@ -28,7 +28,7 @@ playerHandler.addPlayer = function(req, res) {
         p.name = params.name;
         p.pic = "1234";
         p.saveBaseinfo();
-        p.attribute.coins = 10000000;
+        p.attribute.coins = 0;
         p.attribute.totalCoins = p.attribute.coins;
         p.attribute.diamonds = 200;
         p.fields[3] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
@@ -53,6 +53,9 @@ playerHandler.getPlayerInfo = function(req, res) {
     var p = playerSystem.getPlayer(req.body.uid);
     if (p != null) {
         log.writeDebug(p.id + "|" + 'get player info');
+        p.dealSeedOffline();
+        p.dealofflineCoins();
+        p.dealDayValue();
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
         return;
     } else {
@@ -1011,7 +1014,7 @@ playerHandler.getRandEvent = function(req, res) {
     for (var key in eventRand) {
         sum = sum + eventRand[key];
         if (sum >= randNum) {
-            p.attribute.randEventID = key + 1;
+            p.attribute.randEventID = parseInt(key) + 1;
             return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({ID : parseInt(key) + 1})}));
         }
     }
@@ -1196,6 +1199,7 @@ playerHandler.getRandEventReward = function(req, res) {
     } else if (p.attribute.randEventID == 5) {
         addEvent5Reward(p, rand, req, res);
     }
+    p.attribute.randEventTimes  += 1;
     p.attribute.randEventID = 0;
     p.attribute.lastDoneRandEventOlTime = p.attribute.onlineTime;
 };
