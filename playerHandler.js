@@ -881,9 +881,9 @@ playerHandler.checkFight = function(req, res) {
                 p.addCoins(elem.awardCoin);
                 p.addItem(elem.awardItem, 1);
                 p.addDiamonds(elem.awardMi);
-                addCoins = ele.awardCoin;
-                addMi = ele.awardMi;
-                addItem = ele.awardItem;
+                addCoins = elem.awardCoin;
+                addMi = elem.awardMi;
+                addItem = elem.awardItem;
             }
         } else if (p.fightInfo.mode == 1) {
             var elem = dataapi.storyFight.findById(p.fightInfo.id);
@@ -891,9 +891,9 @@ playerHandler.checkFight = function(req, res) {
                 p.addCoins(elem.awardCoin);
                 p.addItem(elem.awardItem, 1);
                 p.addDiamonds(elem.awardMi);
-                addCoins = ele.awardCoin;
-                addMi = ele.awardMi;
-                addItem = ele.awardItem;
+                addCoins = elem.awardCoin;
+                addMi = elem.awardMi;
+                addItem = elem.awardItem;
             //}
         } else if (p.fightInfo.mode == 800){
             p.addCoins(100000);
@@ -1017,11 +1017,11 @@ playerHandler.getRandEvent = function(req, res) {
     }
 };
 
-function addEvent1Reward(p, rand, req, res)
+function addEvent1Reward(p, rand, result, req, res)
 {
     var reward = [[450000,150000], [650000,250000], [850000,350000]];
     var addCoins = 0;
-    if (params.result == 1) { //获胜
+    if (result == 1) { //获胜
         addCoins = reward[rand][0];
     } else {
         addCoins = reward[rand][1];
@@ -1036,11 +1036,11 @@ function addEvent1Reward(p, rand, req, res)
     return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({coins : addCoins})}));
 }
 
-function addEvent2Reward(p, rand, req, res)
+function addEvent2Reward(p, rand, result, req, res)
 {
     var reward = [[650000,150000], [850000,250000], [1050000,350000]];
     var addCoins = 0;
-    if (params.result == 1) {
+    if (result == 1) {
         addCoins = reward[rand][0];
     } else {
         addCoins = reward[rand][1];
@@ -1186,9 +1186,9 @@ playerHandler.getRandEventReward = function(req, res) {
     }
     var rand = parseInt(Math.random() * 3);
     if (p.attribute.randEventID == 1) {
-        addEvent1Reward(p, rand, req, res);
+        addEvent1Reward(p, rand, params.result, req, res);
     } else if (p.attribute.randEventID == 2) {
-        addEvent2Reward(p, rand, req, res);
+        addEvent2Reward(p, rand, params.result, req, res);
     } else if (p.attribute.randEventID == 3) {
         addEvent3Reward(p, rand, req, res);
     } else if (p.attribute.randEventID == 4) {
@@ -1235,6 +1235,6 @@ playerHandler.addOnlineTime = function(req, res) {
         return;
     }
     p.attribute.onlineTime = params.totalTime;
-    p.attribute.onlineUpdateTime = nowTime;
+    p.attribute.onlineUpdateTime = utils.getSecond();
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify(p.attribute)}))
 };
