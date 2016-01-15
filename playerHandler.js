@@ -31,6 +31,7 @@ playerHandler.addPlayer = function(req, res) {
         p.attribute.coins = 0;
         p.attribute.totalCoins = p.attribute.coins;
         p.attribute.diamonds = 200;
+        p.attribute.onlineUpdateTime = utils.getSecond();
         p.fields[3] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
         p.fields[4] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
         p.fields[5] = {itemID:30003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(30003), updateTime : 0};
@@ -661,10 +662,10 @@ playerHandler.steal = function(req, res) {
                     totalNum += coins;
                 }
             }
-            p.addCoins(totalNum * 0.1);
+            p.addCoins(parseInt(totalNum * 0.1));
             redisClient.hget(params.id + code.GAME_NAME, 'stealMePlayers', cb);
         }, function(redis, cb) {
-            var elem = [p.id, nowTime, totalNum * 0.1];
+            var elem = [p.id, nowTime, parseInt(totalNum * 0.1)];
             var content = undefined;
             if (redis != null) {
                 content = JSON.parse(redis);
@@ -680,6 +681,7 @@ playerHandler.steal = function(req, res) {
             p.reduceStealNum();
             p.saveAttribute();
             p.clearNearPlayersInfo();
+            p.stealInfo = [];
             p.saveStealInfo();
             res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({attribute: JSON.stringify(p.attribute)})}));
         }

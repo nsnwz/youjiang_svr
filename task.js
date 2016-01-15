@@ -17,7 +17,7 @@ var task = function() {
                           10006 : {lv1 : 0, lv2 : 0, lv3 : 0, lv4 : 0, lv5 : 0, FinNum : 0},
                           10007 : {lv1 : 0, lv2 : 0, lv3 : 0, lv4 : 0, lv5 : 0, FinNum : 0},
                           10008 : {lv1 : 0, lv2 : 0, lv3 : 0, lv4 : 0, lv5 : 0, FinNum : 0},
-                          30001 : {Num : 0, FinNum : 0}
+                          30001 : {num : 0, FinNum : 0}
                          },
               forEver : {
                           20001 : {num : 0, FinNum :0},
