@@ -24,7 +24,7 @@ function createSign(param, appkey) {
     var str = "";
     for (var index in array) {
         var key = array[index];
-        str += (key + "=" + param[key]);
+        str += key + "=" + param[key];
     }
     str += appkey;
     console.log('create sign str...', str);
@@ -34,7 +34,8 @@ function createSign(param, appkey) {
 };
 
 var post = function(urlstr, obj, callback) {
-    var contentStr = JSON.stringify(obj);
+    var contentStr = querystring.stringify(obj);
+
     var contentLen = Buffer.byteLength(contentStr, 'utf8');
     var urlData = url.parse(urlstr);
 
@@ -44,7 +45,7 @@ var post = function(urlstr, obj, callback) {
         path: urlData.path,
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': contentLen
         }
     };
@@ -59,32 +60,25 @@ var post = function(urlstr, obj, callback) {
         httpRes.on('end', function(chunk) {
             var wholeData = Buffer.concat(buffers);
             var dataStr = wholeData.toString('utf8');
-            //console.log(JSON.parse(dataStr));
-            console.log('content ' + wholeData);
             callback(dataStr);
         });
     }).on('error', function(err) {
         console.log('error ' + err);
     });
-
-    console.log('write str ', contentStr, contentLen);
     req.write(contentStr);
     req.end();
 };
 
 egret.getUserInfo = function(token, callback) {
     var obj = {
-        token : token,
-        time : utils.getSecond(),
-        appId : appId
+        action : "user.getInfo",
+        appId : appId,
+        serverId : 1,
+        time : 1452949532429,
+        token : token
     };
     obj.sign = createSign(obj, appKey);
     var urlstr = 'http://api.egret-labs.org/v2/user/getInfo';
     post(urlstr, obj, callback);
-    console.log('obj ...', obj);
+
 };
-/*
-egret.getUserInfo("58990123456767", function(str) {
-    console.log('str ..', str);
-});
-    */

@@ -98,7 +98,7 @@ var player = function() {
                          playerNotHurtTime : 0,
                          bossNotHurtTime : 0,
                          player20Hurt : 0,
-                         boss20Hurt : 0,
+                         boss20Hurt : 0
                         };
     this.stealInfo = []; //保存上次用户随机到的偷取哪些用户的信息
     this.stealMePlayers = [];//保存偷取自己的用户信息
@@ -506,12 +506,13 @@ player.prototype.register = function(egretPlayer) {
     this.pic = egretPlayer.pic;
     this.saveBaseinfo();
     this.attribute.coins = 0;
-    this.attribute.totalCoins = this.attribute.coins;
+    this.attribute.totalCoins = p.attribute.coins;
     this.attribute.diamonds = 200;
-    this.fields[1] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
-    this.fields[2] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
-    this.fields[3] = {itemID:30003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(30003), updateTime : 0};
-    this.fields[4] = {itemID:40003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(40003), updateTime : 0};
+    this.attribute.onlineUpdateTime = utils.getSecond();
+    this.fields[3] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
+    this.fields[4] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
+    this.fields[5] = {itemID:30003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(30003), updateTime : 0};
+    this.fields[6] = {itemID:40003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(40003), updateTime : 0};
     this.addItem(10002, 6);
     this.addItem(20002, 6);
     this.addItem(30002, 6);
@@ -519,7 +520,6 @@ player.prototype.register = function(egretPlayer) {
     this.saveItem();
     this.saveAttribute();
     this.saveFields();
-    log.writeDebug('new' + this.id);
 };
 
 player.prototype.updateFightID = function(mode, id) {

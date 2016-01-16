@@ -17,6 +17,7 @@ var task = require('./task');
 var egret = require('./egret');
 var utils = require('./utils');
 var log = require('./log.js').helper;
+var querystring = require('querystring');
 
 var playerHandler = module.exports;
 
@@ -62,21 +63,26 @@ playerHandler.getPlayerInfo = function(req, res) {
     } else {
         var egretPlayer = null;
         async.waterfall([
-            /*
             function(cb) {
-                egret.getUserInfo(params.token, cb);
+                egret.getUserInfo(req.body.token, function(str) {
+                    cb(null, str);
+                });
             },
             function(egret, cb) {
+                egret = JSON.parse(egret);
                 if (egret.code) {
                     res.end(JSON.stringify({cmdID: req.body.cmdID, ret : egret.code}));
                     return;
                 }
-                egretPlayer = egret;
-                redisClient.getKey(egret.id, cb);
+                egretPlayer = egret.data;
+                redisClient.getKey(egretPlayer.id, cb);
             },function(redis, cb) {
                 if (redis == null) {
                     p = new playerModel();
                     p.register(egretPlayer);
+                    p.dealSeedOffline();
+                    p.dealofflineCoins();
+                    p.dealDayValue();
                     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK,  cmdParams : JSON.stringify(p.getLoginJson())}));
                     return;
                 } else {
@@ -87,22 +93,7 @@ playerHandler.getPlayerInfo = function(req, res) {
                     console.log(p);
                     redisClient.hget(p.id + code.GAME_NAME, "item", cb);
                 }
-            },
-            */
-
-            function(cb) {
-                redisClient.getKey(req.body.uid, cb);
-            }, function(redis, cb) {
-                if (redis != null) {
-                    p = new playerModel();
-                    p.initFromDB(JSON.parse(redis));
-                    playerSystem.addPlayer(p);
-                    redisClient.hget(p.id + code.GAME_NAME, "item", cb);
-                } else {
-                    res.end(JSON.stringify({cmdID: req.body.cmdID, ret:code.NOT_FIND_PALYER_ERROR}));
-                    return;
-                }
-            }, function(redis, cb) {
+            },function(redis, cb) {
                 if (redis != null) {
                     p.initItem(JSON.parse(redis));
                 }
