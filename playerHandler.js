@@ -541,18 +541,20 @@ playerHandler.getSeveralPlayersInfo = function(req, res) {
                 }, function(callback) {
                     redisClient.hget(id + code.GAME_NAME, "attribute", callback);
                 }, function(redis, callback) {
-                    var attribute = JSON.parse(redis);
-                    info.coins = attribute.coins;
-                    info.totalCoins = attribute.totalCoins;
-                    info.starNum = attribute.starNum;
-                    info.mood = attribute.mood;
-                    info.diamonds = attribute.diamonds;
-                    if (utils.getSecond() - attribute.onlineUpdateTime < 20 * 60) {
-                        info.online = 1;
-                    } else {
-                        info.online = 0;
-                    }
-                    uidsInfo.push(info);
+                        if (redis != null) {
+                            var attribute = JSON.parse(redis);
+                            info.coins = attribute.coins;
+                            info.totalCoins = attribute.totalCoins;
+                            info.starNum = attribute.starNum;
+                            info.mood = attribute.mood;
+                            info.diamonds = attribute.diamonds;
+                            if (utils.getSecond() - attribute.onlineUpdateTime < 20 * 60) {
+                                info.online = 1;
+                            } else {
+                                info.online = 0;
+                            }
+                            uidsInfo.push(info);
+                        }
                     callback(null);
                 }], function(err) {
                     if (err) {
@@ -580,11 +582,14 @@ playerHandler.getRankNearPlayers = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    if (p.stealInfo.length > 0) {
-        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo)})}));
-        return;
-    }
     var selfRank = -1;
+    if (p.stealInfo.length > 0) {
+        redisClient.zrevrank(code.GAME_NAME + params.rankName, p.id, function(err, redis) {
+            selfRank = redis;
+            res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo), selfRank : selfRank})}));
+            return;
+        });
+    }
     async.waterfall([
         function(cb) {
             redisClient.zrevrank(code.GAME_NAME + params.rankName, p.id, cb);
@@ -632,7 +637,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 }
             }
             p.saveStealInfo();
-            res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo)})}));
+            res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo), selfRank:selfRank})}));
         }
     ], function(err, result) {
         if (err) {
