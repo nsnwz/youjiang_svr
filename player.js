@@ -492,8 +492,8 @@ player.prototype.reducePower = function(mode) {
         this.attribute.powerUsed += reduceValue;
     } else {
         var value = reduceValue - (50 - this.attribute.powerUsed);
-        p.attribute.powerUsed = 50;
-        p.attribute.buyPowerNum -= value;
+        this.attribute.powerUsed = 50;
+        this.attribute.buyPowerNum -= value;
     }
     this.saveAttribute();
     return true;
