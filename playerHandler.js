@@ -292,8 +292,7 @@ playerHandler.harvest = function(req, res) {
         p.attribute.atk += seed.attack;
         p.attribute.def += seed.defense;
         p.attribute.hp += seed.hp;
-        p.attribute.coins += seed.harvest;
-        p.attribute.totalCoins += seed.harvest;
+        p.addCoins(seed.harvest);
         event.emit('harvest', p, p.fields[params.fields[key]].itemID);
         delete p.fields[params.fields[key]];
         redisClient.zincrby(code.GAME_NAME + 'coins', seed.harvest, p.id, null);
@@ -785,7 +784,7 @@ playerHandler.enterFight = function(req, res) {
     p.fightInfo.bossInitHp = p.fightInfo.posRightHp = elem.blood;
     p.fightInfo.bossInitAtk = p.fightInfo.posRightAtk = elem.atk;
     p.fightInfo.bossInitDef = p.fightInfo.posRightDef = elem.defence;
-    res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
+    res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams:JSON.stringify({bossHp : p.attribute.bossFightHp, powerUsed : p.attribute.powerUsed, buyPowerNum : p.attribute.buyPowerNum})}));
 };
 
 playerHandler.useSkill = function(req, res) {
@@ -898,14 +897,17 @@ playerHandler.checkFight = function(req, res) {
             }
         } else if (p.fightInfo.mode == 1) { //pve挑战模式
             var elem = dataapi.storyFight.findById(p.fightInfo.id);
-            //if (p.attribute.finishTask + 1 == p.fightInfo.id) {
-                p.addCoins(elem.awardCoin);
-                p.addItem(elem.awardItem, 1);
-                p.addDiamonds(elem.awardMi);
+            if (p.attribute.finishTask + 1 == p.fightInfo.id) {
                 addCoins = elem.awardCoin;
                 addMi = elem.awardMi;
                 addItem = elem.awardItem;
-            //}
+            } else {
+                addCoins = parseInt(elem.awardCoin * 0.1);
+                addMi = parseInt(elem.awardMi * 0.1);
+            }
+            p.addCoins(addCoins);
+            p.addItem(addItem, 1);
+            p.addDiamonds(addMi);
         } else if (p.fightInfo.mode == 800){
             p.addCoins(100000);
             addCoins = 100000;
@@ -914,13 +916,14 @@ playerHandler.checkFight = function(req, res) {
         p.saveAttribute();
         p.saveItem();
         redisClient.zincrby(code.GAME_NAME + 'star', starNum, p.id, null);
-        if (p.fightInfo.mode == 2) {
-            p.attribute.bossFightHp = p.fightInfo.posLeftHp;
-        }
         event.emit('fight', p, starNum);
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams :  JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
                                fightResult : params.win, bossFightHp : p.attribute.bossFightHp, starNum : starNum, finishTask : p.attribute.finishTask, bossFinishTask : p.attribute.bossFinishTask})}));
     } else {
+        if (p.fightInfo.mode == 2) {
+            p.attribute.bossFightHp = params.leftHp;
+            p.saveAttribute();
+        }
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams : JSON.stringify({fightResult : params.win})}));
     }
     p.clearFightInfo();

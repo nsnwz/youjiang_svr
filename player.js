@@ -208,6 +208,10 @@ player.prototype.saveItem = function() {
 };
 
 player.prototype.reduceCoins = function(num) {
+    if (isNaN(num)) {
+        log.writeErr('num is not number' + num);
+        return false;
+    }
     if (this.attribute.coins >= num) {
         this.attribute.coins -= num;
         return true;
@@ -218,6 +222,10 @@ player.prototype.reduceCoins = function(num) {
 };
 
 player.prototype.reduceDiamonds = function(num) {
+    if (isNaN(num)) {
+        log.writeErr('num is not number' + num);
+        return false;
+    }
     if (this.attribute.diamonds >= num) {
         this.attribute.diamonds -= num;
         return true;
@@ -377,11 +385,19 @@ player.prototype.clearNearPlayersInfo = function() {
 };
 
 player.prototype.addCoins = function(addNum) {
+    if (isNaN(addNum)) {
+        log.writeErr('num is not number' + num);
+        return false;
+    }
     this.attribute.coins += addNum;
     this.attribute.totalCoins += addNum;
 };
 
 player.prototype.addDiamonds = function(addNum) {
+    if (isNaN(addNum)) {
+        log.writeErr('num is not number' + num);
+        return false;
+    }
     this.attribute.diamonds += addNum;
 };
 
@@ -484,9 +500,9 @@ player.prototype.register = function(egretPlayer) {
     this.name = egretPlayer.name;
     this.pic = egretPlayer.pic;
     this.saveBaseinfo();
-    this.attribute.coins = 100000000000000;
+    this.attribute.coins = 0;
     this.attribute.totalCoins = this.attribute.coins;
-    this.attribute.diamonds = 10000000000;
+    this.attribute.diamonds = 200;
     this.fields[1] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
     this.fields[2] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
     this.fields[3] = {itemID:30003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(30003), updateTime : 0};

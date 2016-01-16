@@ -106,7 +106,11 @@ item.getStarNum = function(p, id, time, mode) {
             var fightStarRandom = dataapi.other.findById('fightStarRandom').val.split('/');
             for (var key in fightStarTime) {
                 if (time < fightStarTime[key]) {
-                    return (elem.star * fightStarRandom[key] / 3);
+                    var num = parseInt(elem.star * fightStarRandom[key] / 3);
+                    if (id <= p.attribute.finishTask) {
+                        num = num;
+                    }
+                    return num;
                 }
             }
         }
