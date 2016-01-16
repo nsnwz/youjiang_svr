@@ -158,8 +158,11 @@ cmds = {
         CMD 摇一摇增加在线时长
         {totalTime : }
      */
-    1029 : playerHandler.addOnlineTime
-
+    1029 : playerHandler.addOnlineTime,
+    /*
+        CMD 用户充值
+     */
+    1030 : playerHandler.charge
 };
 
 module.exports = cmds;

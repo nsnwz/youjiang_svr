@@ -150,3 +150,14 @@ redis.zcount = function(sType, min, max, cb) {
         }
     });
 };
+
+redis.hincrby = function(sType, sField, increment, cb) {
+    redisDB.hincrby(sType, sField, increment, function(err, res) {
+        if (err != null) {
+            console.log('hincrby error: ' + err.message);
+            utils.invokeCallback(cb, err.message, null);
+        } else {
+            utils.invokeCallback(cb, null, res);
+        }
+    });
+};

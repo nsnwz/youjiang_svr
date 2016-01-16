@@ -147,7 +147,16 @@ playerHandler.getPlayerInfo = function(req, res) {
                 if (redis != null) {
                     p.stealMePlayers = JSON.parse(redis);
                 }
-                cb(null);
+                redisClient.hget(p.id + code.GAME_NAME, "money", cb);
+            }, function(redis, cb) {
+                if (redis != null) {
+                    var num = parseInt(redis);
+                    p.addDiamonds(num);
+                    p.saveAttribute();
+                    redisClient.hincrby(p.id + code.GAME_NAME, "money", -num, cb);
+                } else {
+                    cb(null);
+                }
             }
         ], function(err) {
             if (err != null) {
@@ -503,6 +512,11 @@ playerHandler.getServerTime = function(req, res) {
         p.attribute.onlineUpdateTime = nowTime;
     }
     */
+    if (isNaN(params.totalTime)) {
+        log.writeErr('totalTime Not number', req.body.uid + '|' + req.body.cmdID + params.totalTime);
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.PARAM_NOT_CORRECT}));
+        return;
+    }
     p.attribute.onlineTime = params.totalTime;
     p.attribute.onlineUpdateTime = nowTime;
     p.saveAttribute();
@@ -1249,7 +1263,32 @@ playerHandler.addOnlineTime = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
+    if (isNaN(params.totalTime)) {
+        log.writeErr('totalTime Not number', req.body.uid + '|' + req.body.cmdID + params.totalTime);
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.PARAM_NOT_CORRECT}));
+        return;
+    }
     p.attribute.onlineTime = params.totalTime;
     p.attribute.onlineUpdateTime = utils.getSecond();
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify(p.attribute)}))
+};
+
+playerHandler.charge = function(req, res) {
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    redisClient.hget(p.id + code.GAME_NAME, "money", function(err, redis) {
+        if (redis != null) {
+            var num = parseInt(redis);
+            p.addDiamonds(num);
+            p.saveAttribute();
+            redisClient.hincrby(p.id + code.GAME_NAME, "money", -num, function(err) {});
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({money : num})}));
+        } else {
+            log.writeErr(p.id + '|' + req.body.cmdID + "not charge money ");
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.CHARGE.NOT_ADD_ANY_MONEY }));
+        }
+    });
 };

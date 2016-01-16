@@ -10,6 +10,7 @@ module.exports = {
     OK : 0,
     SYSTEM_ERROR : 500,
     NOT_FIND_PALYER_ERROR : 501,
+    PARAM_NOT_CORRECT : 502,
     ITEM_ERROR : {
         NOT_EXIST_ITEM : 6000,
         NOT_ENOUGH_COINS_BUY_ITEM : 6001,
@@ -39,6 +40,9 @@ module.exports = {
         CHECK_NOT_CORRECT : 20000,
         FITHT_LOST : 20001,
         BOSS_HP_NOT_ENOUGH : 20002
+    },
+    CHARGE : {
+        NOT_ADD_ANY_MONEY : 30000
     },
     MAX_FREE_STEAL_NUM : 5
 };
