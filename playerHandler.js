@@ -608,11 +608,19 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 })
             }
         }, function(redis, cb) {
-            if (redis.length < 10) {
-                p.stealInfo = redis;
+            var rank = [];
+            for (var i = 0; i < redis.length / 2; i++) {
+                var ele = [redis[2*i], redis[2*i + 1]];
+                if (redis[2 * i] == p.id) {
+                    continue;
+                }
+                rank.push(ele);
+            }
+            if (rank < 10) {
+                p.stealInfo = rank;
             } else {
                 var idx = [];
-                for (var i = 0; i < redis.length; i++) {
+                for (var i = 0; i < rank.length; i++) {
                     idx.push(i);
                 }
                 idx.sort(function() {
@@ -620,13 +628,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 });
                 idx.length = 10;
                 for (var i = 0; i < idx.length; i++) {
-                    p.stealInfo.push(redis[i]);
-                }
-            }
-            for (var key in p.stealInfo) {
-                if (p.stealInfo[key][0] == p.id) {
-                    delete p.stealInfo[key];
-                    break;
+                    p.stealInfo.push(rank[i]);
                 }
             }
             p.saveStealInfo();

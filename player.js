@@ -373,7 +373,12 @@ player.prototype.reduceStealNum = function() {
 
 player.prototype.checkStealID = function(id) {
     for (var key in this.stealInfo) {
-        if (this.stealInfo[key] == id && key % 2 == 0) {
+        if (this.stealInfo[key][0] == id) {
+            return true;
+        }
+    }
+    for (var key in this.stealMePlayers) {
+        if (this.stealMePlayers[key][0] == id) {
             return true;
         }
     }
