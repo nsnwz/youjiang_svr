@@ -208,7 +208,7 @@ player.prototype.saveItem = function() {
 };
 
 player.prototype.reduceCoins = function(num) {
-    if (this.attribute.coins > num) {
+    if (this.attribute.coins >= num) {
         this.attribute.coins -= num;
         return true;
     } else {
@@ -218,7 +218,7 @@ player.prototype.reduceCoins = function(num) {
 };
 
 player.prototype.reduceDiamonds = function(num) {
-    if (this.attribute.diamonds > num) {
+    if (this.attribute.diamonds >= num) {
         this.attribute.diamonds -= num;
         return true;
     } else {
@@ -274,6 +274,9 @@ player.prototype.dealofflineCoins = function() {
     this.attribute.offlineCoins = addHour * 200000;
     this.addCoins(addHour * 200000);
     this.attribute.onlineUpdateTime = now;
+    if (this.attribute.bossFightHp == -1) {
+        this.attribute.bossFightHp = this.attribute.hp;
+    }
 };
 
 player.prototype.setSkillSelected = function(skillID) {
@@ -329,6 +332,7 @@ player.prototype.dealDayValue = function() {
         this.attribute.randEventID = 0;
         this.task.cleanDayTask();
         this.attribute.cleanDayTime = today;
+        this.attribute.bossFightHp = this.attribute.hp;
     }
     this.saveAttribute();
     this.saveTask();

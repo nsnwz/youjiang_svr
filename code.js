@@ -37,7 +37,8 @@ module.exports = {
     },
     FIGHT : {
         CHECK_NOT_CORRECT : 20000,
-        FITHT_LOST : 20001
+        FITHT_LOST : 20001,
+        BOSS_HP_NOT_ENOUGH : 20002
     },
     MAX_FREE_STEAL_NUM : 5
 };

@@ -767,6 +767,11 @@ playerHandler.enterFight = function(req, res) {
             p.sendError(req, res, code.TASK.TASK_NOT_EXIST);
             return;
         }
+        if (p.attribute.bossFightHp <= 0) {
+            log.writeErr(p.id + '|' + req.body.cmdID + "boss hp not enough "  + '|' + params.id);
+            p.sendError(req, res, code.FIGHT.BOSS_HP_NOT_ENOUGH);
+            return;
+        }
     }
     p.fightInfo.id = params.id;
     p.fightInfo.startTime = utils.getSecond();
@@ -880,7 +885,7 @@ playerHandler.checkFight = function(req, res) {
         var addCoins = 0;
         var addMi = 0;
         var addItem = 0;
-        if (p.fightInfo.mode == 2) {
+        if (p.fightInfo.mode == 2) { //pve无尽模式
             if (p.attribute.bossFinishTask + 1 == p.fightInfo.id) {
                 elem = dataapi.bossFight.findById(p.fightInfo.id);
                 p.addCoins(elem.awardCoin);
@@ -889,8 +894,9 @@ playerHandler.checkFight = function(req, res) {
                 addCoins = elem.awardCoin;
                 addMi = elem.awardMi;
                 addItem = elem.awardItem;
+                p.attribute.bossFightHp = params.leftHp;
             }
-        } else if (p.fightInfo.mode == 1) {
+        } else if (p.fightInfo.mode == 1) { //pve挑战模式
             var elem = dataapi.storyFight.findById(p.fightInfo.id);
             //if (p.attribute.finishTask + 1 == p.fightInfo.id) {
                 p.addCoins(elem.awardCoin);

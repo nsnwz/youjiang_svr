@@ -24,6 +24,10 @@ var shopList =  {
         var mood = [[2, 3], [1, 3], [1, 2]];
         p.attribute.mood = mood[p.attribute.mood - 1][parseInt(Math.random() * 2)]
         p.saveAttribute();
+    },
+    600009 : function(p, num) {
+        p.attribute.bossFightHp = p.attribute.hp;
+        p.saveAttribute();
     }
 };
 
