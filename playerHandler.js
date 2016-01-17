@@ -162,7 +162,6 @@ playerHandler.getPlayerInfo = function(req, res) {
                 p.dealDayValue();
                 log.writeDebug('login ' + p.id);
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
-
             }
         });
      //}
@@ -615,7 +614,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 }
                 redisClient.zrevrange(code.GAME_NAME + params.rankName, startID, endID, cb);
             } else {
-                redisClient.zcount(code.GAME_NAME + params.rankName, -inf, +inf, function(err, redis) {
+                redisClient.zcount(code.GAME_NAME + params.rankName, '-inf', '+inf', function(err, redis) {
                     var count = redis;
                     var startID = 0;
                     if (count > 100) {
@@ -633,7 +632,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 }
                 rank.push(ele);
             }
-            if (rank < 10) {
+            if (rank.length < 10) {
                 p.stealInfo = rank;
             } else {
                 var idx = [];
