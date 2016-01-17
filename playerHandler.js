@@ -558,9 +558,11 @@ playerHandler.getSeveralPlayersInfo = function(req, res) {
                         }
                 }, function(redis, callback) {
                         if (redis != null) {
+                            redis = JSON.parse(redis);
                             info.egretId = redis.egretId;
                             info.name = redis.name;
                             info.pic = redis.pic;
+                            info.id = redis.id;
                             uidsInfo.push(info);
                         }
                         callback(null);
