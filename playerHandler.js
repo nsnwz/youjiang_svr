@@ -507,6 +507,7 @@ playerHandler.getServerTime = function(req, res) {
         p.attribute.onlineUpdateTime = nowTime;
     }
     */
+    /*
     if (isNaN(params.totalTime)) {
         log.writeErr('totalTime Not number', req.body.uid + '|' + req.body.cmdID + params.totalTime);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.PARAM_NOT_CORRECT}));
@@ -515,6 +516,7 @@ playerHandler.getServerTime = function(req, res) {
     p.attribute.onlineTime = params.totalTime;
     p.attribute.onlineUpdateTime = nowTime;
     p.saveAttribute();
+    */
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({now : nowTime})}));
 };
 
