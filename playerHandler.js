@@ -523,7 +523,7 @@ playerHandler.getSeveralPlayersInfo = function(req, res) {
     var uidsInfo = [];
     async.eachSeries(params.uids,
         function(id, callback) {
-            var info;
+            var info = {};
             async.waterfall([
                     /*
                 function(callback) {
