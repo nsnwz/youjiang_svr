@@ -543,10 +543,10 @@ player.prototype.updateFightID = function(mode, id) {
 };
 
 player.prototype.charge = function(num) {
-    this.addCoins(num * 100);
+    this.addDiamonds(num * 100);
     redisClient.hincrby(this.egretId + code.GAME_NAME, "money", -num, function(err) {});
     if (!this.attribute.firstCharge) {
-        this.addCoins(num * 100 * 0.2);
+        this.addDiamonds(num * 100 * 0.2);
         this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
         this.attribute.firstCharge = 1;
     }
