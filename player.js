@@ -32,9 +32,11 @@ var player = function() {
     this.id = undefined;
     this.name = 'default';
     this.pic = undefined;
+    this.egretId = undefined;
     this.attribute = {
                         coins:0, //钱数
                         totalCoins : 0, //累加获取的钱的总数
+                        egretId : null,
                         diamonds:0, //钻石数目
                         maxFieldNum : 1, //田块数目
                         atk : 300, //攻击
@@ -56,7 +58,10 @@ var player = function() {
                         lastDoneRandEventOlTime : 0, //上次昨晚随机事件的在线时长(每天清除)
                         randEventTimes : 0, //随机事件的次数(每天清除)
                         randEventID : 0, //随机到的事件(每天清除)
-                        offlineCoins : 0 //离线增加的金钱数
+                        offlineCoins : 0, //离线增加的金钱数
+                        firstCharge : 0,
+                        chargeGift : 0,
+                        chargeGift1 :  0
                        }; //
     this.bag = {}; //背包
     this.fields = {}; //田块种植信息 (
@@ -121,11 +126,12 @@ player.prototype.initFromDB = function(dbrecord) {
     this.id = dbrecord.id;
     this.name = dbrecord.name;
     this.pic = dbrecord.pic;
+    this.egretId = dbrecord.egretId;
 };
 
 player.prototype.getLoginJson = function() {
     var nowTime = utils.getSecond();
-    return JSON.stringify({id:this.id, name:this.name, pic:this.pic, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
+    return JSON.stringify({id:this.id, name:this.name, pic:this.pic, egretId : this.egretId, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
     fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime , skills : JSON.stringify(this.skills)});
 };
 
@@ -157,8 +163,8 @@ player.prototype.initFromWeiXin = function(weixin) {
 
 player.prototype.saveBaseinfo = function() {
     //var data = {openid:this.openid, nickname:this.nickname, sex:this.sex, language:this.language, city:this.city, province:this.province, country:this.country, headimgurl:this.headimgurl, privilege:this.privilege};
-    var data = {id:this.id, name:this.name, pic:this.pic};
-    redisClient.updateKey(this.id, JSON.stringify(data));
+    var data = {id:this.id, name:this.name, pic:this.pic, egretId : this.egretId};
+    redisClient.updateKey(this.egretId, JSON.stringify(data));
 };
 
 player.prototype.test = function() {
@@ -208,7 +214,7 @@ player.prototype.saveItem = function() {
 };
 
 player.prototype.reduceCoins = function(num) {
-    if (isNaN(num)) {
+    if (isNaN(parseInt(num))) {
         log.writeErr('num is not number' + num);
         return false;
     }
@@ -222,7 +228,7 @@ player.prototype.reduceCoins = function(num) {
 };
 
 player.prototype.reduceDiamonds = function(num) {
-    if (isNaN(num)) {
+    if (isNaN(parseInt(num))) {
         log.writeErr('num is not number' + num);
         return false;
     }
@@ -390,8 +396,8 @@ player.prototype.clearNearPlayersInfo = function() {
 };
 
 player.prototype.addCoins = function(addNum) {
-    if (isNaN(addNum)) {
-        log.writeErr('num is not number' + num);
+    if (isNaN(parseInt(addNum))) {
+        log.writeErr('num is not number' + addNum);
         return false;
     }
     this.attribute.coins += addNum;
@@ -399,8 +405,8 @@ player.prototype.addCoins = function(addNum) {
 };
 
 player.prototype.addDiamonds = function(addNum) {
-    if (isNaN(addNum)) {
-        log.writeErr('num is not number' + num);
+    if (isNaN(parseInt(addNum))) {
+        log.writeErr('num is not number' + addNum);
         return false;
     }
     this.attribute.diamonds += addNum;
@@ -500,13 +506,15 @@ player.prototype.reducePower = function(mode) {
 
 };
 
-player.prototype.register = function(egretPlayer) {
-    this.id = egretPlayer.id;
+player.prototype.register = function(egretPlayer, newUid) {
+    this.id = newUid;
+    this.egretId = egretPlayer.id;
     this.name = egretPlayer.name;
     this.pic = egretPlayer.pic;
     this.saveBaseinfo();
+    this.attribute.egretId = egretPlayer.id;
     this.attribute.coins = 0;
-    this.attribute.totalCoins = p.attribute.coins;
+    this.attribute.totalCoins = this.attribute.coins;
     this.attribute.diamonds = 200;
     this.attribute.onlineUpdateTime = utils.getSecond();
     this.fields[3] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
@@ -532,6 +540,41 @@ player.prototype.updateFightID = function(mode, id) {
             this.attribute.bossFinishTask = id;
         }
     }
+};
+
+player.prototype.charge = function(num) {
+    this.addCoins(num * 100);
+    redisClient.hincrby(this.egretId + code.GAME_NAME, "money", -num, function(err) {});
+    if (!this.attribute.firstCharge) {
+        this.addCoins(num * 100 * 0.2);
+        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.attribute.firstCharge = 1;
+    }
+    if (num == 50) {
+        this.skills[20001].useTimes += 4;
+        this.skills[20002].useTimes += 4;
+        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+    } else if (num == 100) {
+        this.skills[20001].useTimes += 4;
+        this.skills[20002].useTimes += 4;
+        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.addItem(61000, 1);
+    } else if (num == 1000) {
+        this.skills[20001].useTimes += 120;
+        this.skills[20002].useTimes += 120;
+        this.skills[30001].lv = 1;
+        for (var i = 0; i < 50; i++) {
+            this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        }
+        this.addItem(61001, 1);
+    }
+    this.saveSkills();
+    this.saveItem();
+    this.saveAttribute();
 };
 
 
