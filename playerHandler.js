@@ -1048,10 +1048,12 @@ playerHandler.getRandEvent = function(req, res) {
     } else {
         needTimes = 15 * 60;
     }
+    /*
     if (p.attribute.onlineTime - p.attribute.lastDoneRandEventOlTime < needTimes) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
+    */
     var eventRand = [0.26, 0.26, 0.26, 0.21, 0.01];
     var randNum = Math.random();
     var sum = 0;
