@@ -157,11 +157,14 @@ playerHandler.getPlayerInfo = function(req, res) {
             if (err != null) {
                 log.writeErr(req.body.cmdID + '|' + 'redis err');
             } else {
+                log.writeDebug(p.fields);
                 p.dealSeedOffline();
                 p.dealofflineCoins();
                 p.dealDayValue();
+                log.writeDebug(p.fields);
                 log.writeDebug('login ' + p.id);
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
+                log.writeDebug(p.fields);
             }
         });
      //}
