@@ -7,6 +7,7 @@ var http = require("http");
 var cmds = require('./cmd');
 var code = require('./code');
 var log = require('./log.js').helper;
+var playerSystem = require('./playerSystem');
 
 var httpServer = http.createServer(function (req, res) {
     var dataChunks = undefined;
@@ -32,6 +33,10 @@ var httpServer = http.createServer(function (req, res) {
                 log.writeDebug(req.body.uid + '|' + req.body.cmdID + '|' + req.body.cmdParams);
                 console.log(req.body.uid + '|' + req.body.cmdID + '|' + req.body.cmdParams);
                 if (typeof cmds[req.body.cmdID] == 'function') {
+                    var p = playerSystem.getPlayer(req.body.uid);
+                    if (p) {
+                        log.writeDebug(p.fields);
+                    }
                     cmds[req.body.cmdID](req, res);
                 } else {
                     res.end(JSON.stringify({cmdID : req.body.cmdID, ret: code.SYSTEM_ERROR}));
