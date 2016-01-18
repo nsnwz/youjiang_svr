@@ -2,6 +2,8 @@
  * Created by miller on 2015/10/22.
  */
 
+var log = require('./log.js').helper;
+
 var exp = module.exports;
 
 var players = {};
@@ -9,7 +11,7 @@ var players = {};
 exp.addPlayer = function(player) {
     var id = player.id;
     if (!!players[id]) {
-        console.log('add player twice : ', player.id);
+        log.writeErr('add player twice ' + player.id);
         return false;
     }
     players[id] = player;
@@ -21,7 +23,7 @@ exp.removePlayer = function(id) {
         delete players[id];
         return true;
     }
-    console.log('remove player error not exist : ', id);
+    log.writeErr('remove player error not exist ' + id);
     return false;
 };
 

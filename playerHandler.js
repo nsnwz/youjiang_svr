@@ -78,6 +78,7 @@ playerHandler.getPlayerInfo = function(req, res) {
                     return;
                 }
                 egretPlayer = egret.data;
+                log.writeDebug(egretPlayer);
                 redisClient.getKey(egretPlayer.id, cb);
             },function(redis, cb) {
                 if (redis == null) {
@@ -95,6 +96,11 @@ playerHandler.getPlayerInfo = function(req, res) {
                 } else {
                     p = new playerModel();
                     p.initFromDB(JSON.parse(redis));
+                    log.writeDebug('got redis');
+                    log.writeDebug(JSON.parse(redis));
+                    if (!!playerSystem.getPlayer(p.id)) {
+                        playerSystem.removePlayer(p.id);
+                    }
                     playerSystem.addPlayer(p);
                     console.log('get redis: ', redis);
                     console.log(p);
