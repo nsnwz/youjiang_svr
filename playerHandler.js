@@ -944,7 +944,8 @@ playerHandler.checkFight = function(req, res) {
                 addItem = elem.awardItem;
             } else {
                 addCoins = parseInt(elem.awardCoin * 0.1);
-                addMi = parseInt(elem.awardMi * 0.1);
+                //addMi = parseInt(elem.awardMi * 0.1);
+                addMi = parseInt(5);
             }
             p.addCoins(addCoins);
             p.addItem(addItem, 1);
