@@ -256,7 +256,7 @@ playerHandler.plant = function(req, res) {
             p.sendError(req, res, code.PLANT.FIELD_CANNOT_PLANT);
             return;
         }
-        if (p.getItemAmount[params[key]] < 0) {
+        if (p.getItemAmount[params[key]] < 1) {
             log.writeErr(p.id + '|' + req.body.cmdID + "item not enough "  + '|' + params[key]);
             p.sendError(req, res, code.ITEM_ERROR.ITEM_NOT_ENOUGH);
             return;
@@ -1241,7 +1241,14 @@ playerHandler.getRandEventReward = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    var rand = parseInt(Math.random() * 3);
+    var rand = 0;
+    if (p.attribute.onlineTime <= 5 * 60) {
+        rand = 0;
+    } else if (p.attribute.onlineTime <= 10 * 60) {
+        rand = 1;
+    } else {
+        rand = 2;
+    }
     if (p.attribute.randEventID == 1) {
         addEvent1Reward(p, rand, params.result, req, res);
     } else if (p.attribute.randEventID == 2) {

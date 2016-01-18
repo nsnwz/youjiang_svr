@@ -75,8 +75,8 @@ var player = function() {
                      10001 : {lv : 1, selected : true}, //战斗技能, 等级，是否选择
                      10002 : {lv : 1, selected : false}, //战斗技能, 等级，是否选择
                      10003 : {lv : 1, selected : false}, //战斗技能, 等级，是否选择
-                     20001 : {useTimes : 0, selected : true}, //可以使用次数，是否选择
-                     20002 : {useTimes : 0, selected : false}, //可以使用次数，是否选择
+                     20001 : {useTimes : 1, selected : true}, //可以使用次数，是否选择
+                     20002 : {useTimes : 1, selected : false}, //可以使用次数，是否选择
                      30001 : {lv : 0} //等级为零表示没有此技能，大于0表示有
                    };
     this.session = undefined;
