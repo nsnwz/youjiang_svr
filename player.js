@@ -52,7 +52,7 @@ var player = function() {
                         cleanDayTime : 0, //上次清理每日数据的时间
                         bossFightHp : -1, //挑战模式用户保留的血量，-1表示需要初始化为初始血量(每天清除)
                         starNum : 0, //战斗星级
-                        mood : 1, //心情 (初始值需要每天清除, 1表示正常，2表示高兴，3表示哭)
+                        mood : 1, //心情 (初始值需要每天清除, 1表示差，2表示一般，3表示高兴)
                         onlineTime : 0, //在线时长(每天清除)
                         onlineUpdateTime : 0, //在线时长更新时间(登入额时候设置为登入时间)
                         lastDoneRandEventOlTime : 0, //上次昨晚随机事件的在线时长(每天清除)
@@ -550,11 +550,14 @@ player.prototype.charge = function(num) {
         this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
         this.attribute.firstCharge = 1;
     }
-    if (num == 50) {
+    if (num == 10) {
+        this.addDiamonds(num * 100 * 0.2);
+    } else if (num == 50) {
         this.skills[20001].useTimes += 4;
         this.skills[20002].useTimes += 4;
         this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
         this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.addDiamonds(num * 100 * 0.25);
     } else if (num == 100) {
         this.skills[20001].useTimes += 4;
         this.skills[20002].useTimes += 4;
@@ -563,6 +566,7 @@ player.prototype.charge = function(num) {
         this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
         this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
         this.addItem(61000, 1);
+        this.addDiamonds(num * 100 * 0.30);
     } else if (num == 1000) {
         this.skills[20001].useTimes += 120;
         this.skills[20002].useTimes += 120;
@@ -571,6 +575,7 @@ player.prototype.charge = function(num) {
             this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
         }
         this.addItem(61001, 1);
+        this.addDiamonds(num * 100 * 0.4);
     }
     this.saveSkills();
     this.saveItem();

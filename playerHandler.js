@@ -1083,9 +1083,9 @@ function addEvent1Reward(p, rand, result, req, res)
     } else {
         addCoins = reward[rand][1];
     }
-    if (p.attribute.mood == 1) {
+    if (p.attribute.mood == 3) {
         addCoins += 50000;
-    } else if (p.attribute.mood == 3) {
+    } else if (p.attribute.mood == 1) {
         addCoins -= 50000;
     }
     p.addCoins(addCoins);
@@ -1102,9 +1102,9 @@ function addEvent2Reward(p, rand, result, req, res)
     } else {
         addCoins = reward[rand][1];
     }
-    if (p.attribute.mood == 1) {
+    if (p.attribute.mood == 3) {
         addCoins += 50000;
-    } else if (p.attribute.mood == 3) {
+    } else if (p.attribute.mood == 1) {
         addCoins -= 50000;
     }
     p.addCoins(addCoins);
@@ -1152,9 +1152,9 @@ function addEvent3Reward(p, rand, req, res)
            itemNum = 2;
        }
    }
-   if (p.attribute.mood == 1) { //高兴
+   if (p.attribute.mood == 3) {
        addCoins += 50000;
-   } else if (p.attribute.mood == 3) { //哭
+   } else if (p.attribute.mood == 1) {
        addCoins -= 50000;
    }
     p.addCoins(addCoins);
@@ -1201,9 +1201,9 @@ function addEvent4Reward(p, rand, req, res)
             itemNum = 3;
         }
     }
-    if (p.attribute.mood == 1) {
+    if (p.attribute.mood == 3) {
         addCoins += 50000;
-    } else if (p.attribute.mood == 3) {
+    } else if (p.attribute.mood == 1) {
         addCoins -= 50000;
     }
     p.addCoins(addCoins);
@@ -1216,9 +1216,9 @@ function addEvent4Reward(p, rand, req, res)
 function addEvent5Reward(p, rand, req, res)
 {
     var addCoins = 50000;
-    if (p.attribute.mood == 1) {
+    if (p.attribute.mood == 3) {
         addCoins += 50000;
-    } else if (p.attribute.mood == 3) {
+    } else if (p.attribute.mood == 1) {
         addCoins -= 50000;
     }
     var itemID = itemID = parseInt(Math.random() * 4 + 1) * 10000 + 5;
