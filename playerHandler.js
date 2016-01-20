@@ -949,14 +949,13 @@ playerHandler.checkFight = function(req, res) {
                 addMi = elem.awardMi;
                 addItem = elem.awardItem;
             } else {
-                addCoins = parseInt(elem.awardCoin * 0.1);
-		if (elem.awardMi) {
+                addCoins = parseInt(elem.awardCoin * 0.3);
+		        if (elem.awardMi) {
                 	var lastElem = dataapi.bossFight.findById(p.fightInfo.id - 1);
-			if (lastElem) {
-				addCoins += Math.floor(lastElem.awardCoin * 0.12);
-			}
-		}
-                //addMi = parseInt(elem.awardMi * 0.1);
+			        if (lastElem) {
+				        addCoins += Math.floor(lastElem.awardCoin * 0.35);
+			        }
+		        }
             }
             p.addCoins(addCoins);
             p.addItem(addItem, 1);

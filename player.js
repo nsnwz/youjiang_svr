@@ -347,6 +347,7 @@ player.prototype.dealDayValue = function() {
         this.task.cleanDayTask();
         this.attribute.cleanDayTime = today;
         this.attribute.bossFightHp = this.attribute.hp;
+        this.attribute.bossFinishTask = 0;
     }
     this.saveAttribute();
     this.saveTask();

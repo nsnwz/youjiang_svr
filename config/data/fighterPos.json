@@ -1,0 +1,97 @@
+{
+	"0": {
+		"posX": 220,
+		"id": 0,
+		"powerScaleY": 1
+	},
+	"1": {
+		"posX": 147,
+		"id": 1,
+		"powerScaleY": 1
+	},
+	"2": {
+		"posX": 147,
+		"id": 2,
+		"powerScaleY": 2
+	},
+	"3": {
+		"posX": 153,
+		"id": 3,
+		"powerScaleY": 1
+	},
+	"4": {
+		"posX": 153,
+		"id": 4,
+		"powerScaleY": 1
+	},
+	"5": {
+		"posX": 153,
+		"id": 5,
+		"powerScaleY": 1
+	},
+	"6": {
+		"posX": 153,
+		"id": 6,
+		"powerScaleY": 1
+	},
+	"7": {
+		"posX": 180,
+		"id": 7,
+		"powerScaleY": 1
+	},
+	"8": {
+		"posX": 153,
+		"id": 8,
+		"powerScaleY": 1
+	},
+	"9": {
+		"posX": 180,
+		"id": 9,
+		"powerScaleY": 1
+	},
+	"10": {
+		"posX": 153,
+		"id": 10,
+		"powerScaleY": 2
+	},
+	"11": {
+		"posX": 153,
+		"id": 11,
+		"powerScaleY": 1
+	},
+	"12": {
+		"posX": 180,
+		"id": 12,
+		"powerScaleY": 1
+	},
+	"13": {
+		"posX": 220,
+		"id": 13,
+		"powerScaleY": 1
+	},
+	"14": {
+		"posX": 220,
+		"id": 14,
+		"powerScaleY": 2
+	},
+	"15": {
+		"posX": 225,
+		"id": 15,
+		"powerScaleY": 1
+	},
+	"16": {
+		"posX": 153,
+		"id": 16,
+		"powerScaleY": 1
+	},
+	"6000": {
+		"posX": 160,
+		"id": 6000,
+		"powerScaleY": 2
+	},
+	"5000": {
+		"posX": 153,
+		"id": 5000,
+		"powerScaleY": 2
+	}
+}
