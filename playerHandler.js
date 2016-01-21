@@ -623,7 +623,6 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 if (selfRank > 50) {
                     startID -= 50;
                 }
-
                 redisClient.zrevrange(code.GAME_NAME + params.rankName, startID, endID, cb);
             } else {
                 redisClient.zcount(code.GAME_NAME + params.rankName, '-inf', '+inf', function(err, redis) {
@@ -632,7 +631,6 @@ playerHandler.getRankNearPlayers = function(req, res) {
                     if (count > 100) {
                         startID = count - 100;
                     }
-
                     redisClient.zrevrange(code.GAME_NAME + params.rankName, startID, count, cb);
                 })
             }
@@ -656,12 +654,13 @@ playerHandler.getRankNearPlayers = function(req, res) {
                     return Math.random() - 0.5;
                 });
                 idx.length = 10;
+                p.stealInfo = [];
                 for (var i = 0; i < idx.length; i++) {
                     p.stealInfo.push(rank[i]);
                 }
             }
 	
-  	    log.writeDebug(p.stealInfo);
+  	        log.writeDebug(p.stealInfo);
             p.saveStealInfo();
             res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify({fields: JSON.stringify(p.stealInfo), selfRank:selfRank})}));
         }
@@ -1336,4 +1335,18 @@ playerHandler.charge = function(req, res) {
             res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.CHARGE.NOT_ADD_ANY_MONEY }));
         }
     });
+};
+
+
+playerHandler.startFight = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    if (p.fightInfo.id) {
+        p.fightInfo.startTime = utils.getSecond();
+    }
+    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK}))
 };

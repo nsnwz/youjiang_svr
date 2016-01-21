@@ -90,7 +90,11 @@ item.getStarNum = function(p, id, time, mode) {
         if (p.attribute.bossFinishTask + 1 == id) {
             var elem = dataapi.bossFight.findById(id);
             if (elem) {
-                return elem.star;
+                if (isNaN(elem.star)) {
+                    return 3;
+                } else {
+                    return elem.star;
+                }
             }
             return 0;
         } else {
@@ -106,11 +110,15 @@ item.getStarNum = function(p, id, time, mode) {
             var fightStarRandom = dataapi.other.findById('fightStarRandom').val.split('/');
             for (var key in fightStarTime) {
                 if (time < fightStarTime[key]) {
-                    var num = parseInt(elem.star * fightStarRandom[key] / 3);
-                    if (id <= p.attribute.finishTask) {
-                        num = num;
+                    if (!isNaN(elem.star)) {
+                        var num = parseInt(elem.star * fightStarRandom[key] / 3);
+                        if (id <= p.attribute.finishTask) {
+                            num = num;
+                        }
+                        return num;
+                    } else {
+                        return 3;
                     }
-                    return num;
                 }
             }
         }

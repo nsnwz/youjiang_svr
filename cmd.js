@@ -162,7 +162,11 @@ cmds = {
     /*
         CMD 用户充值
      */
-    1030 : playerHandler.charge
+    1030 : playerHandler.charge,
+    /*
+        CMD 战斗开始
+     */
+    1040 : playerHandler.startFight
 };
 
 module.exports = cmds;
