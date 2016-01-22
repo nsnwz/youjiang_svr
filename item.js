@@ -126,10 +126,14 @@ item.getStarNum = function(p, id, time, mode) {
 };
 
 item.getSeedType = function(itemID) {
-  return (parseInt(itemID / 10000));
+    return (parseInt(itemID / 10000));
 };
 
 item.getSeedLv = function(itemID) {
-  return (itemID % 10);
+    return (itemID % 10);
 };
 
+item.checkConfig = function(callback) {
+
+    callback(null);
+};

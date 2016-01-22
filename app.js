@@ -4,10 +4,12 @@
 
 'use strict';
 var http = require("http");
+var async = require('async');
 var cmds = require('./cmd');
 var code = require('./code');
 var log = require('./log.js').helper;
 var playerSystem = require('./playerSystem');
+var items = require('./item.js');
 
 var httpServer = http.createServer(function (req, res) {
     var dataChunks = undefined;
@@ -54,9 +56,20 @@ var httpServer = http.createServer(function (req, res) {
     });
 });
 
-httpServer.listen(8000);
-log.writeInfo("server start");
-
+async.waterfall([
+    function(callback) {
+        items.checkConfig(function(err) {
+           callback(err);
+        });
+    }, function(callback) {
+        httpServer.listen(8000);
+        log.writeInfo("server start");
+    }
+    ], function(err) {
+        if (err) {
+            log.writeErr('start err');
+        }
+    });
 
 process.on('uncaughtException', function (err) {
     log.writeErr(' Caught exception: ', err.stack);
