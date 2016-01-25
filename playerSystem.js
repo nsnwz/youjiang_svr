@@ -47,3 +47,15 @@ exp.save = function(res) {
         //pPlayer.save();
     }
 };
+
+exp.delExpirePlayer = function() {
+    var delPlayers = [];
+    for (var key in players) {
+        if (utils.getSecond() - p.onlineUpdateTime > 2 * 60 * 60) {
+            delPlayers.push(p.id)
+        }
+    }
+    for (var key in delPlayers) {
+        exp.removePlayer(delPlayers[key]);
+    }
+};

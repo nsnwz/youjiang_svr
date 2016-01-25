@@ -64,6 +64,13 @@ async.waterfall([
     }, function(callback) {
         httpServer.listen(8000);
         log.writeInfo("server start");
+        callback(null);
+    }, function(callback) {
+        var oneSecond = 1000 * 1 * 60; // one second = 1000 x 1 ms
+        setInterval(function() {
+            playerSystem.delExpirePlayer();
+        }, oneSecond);
+        callback(null);
     }
     ], function(err) {
         if (err) {
