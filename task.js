@@ -365,7 +365,7 @@ task.prototype.giveTaskReward = function(p, taskID) {
         return null;
     }
     p.addCoins(ele.reward1);
-    p.addCoins(ele.reward2);
+    p.addDiamonds(ele.reward2);
     p.addItem(ele.reward3, 1);
     p.saveAttribute();
     p.saveItem();
