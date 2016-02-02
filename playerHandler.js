@@ -1273,6 +1273,7 @@ playerHandler.getRandEventReward = function(req, res) {
     p.attribute.randEventTimes  += 1;
     p.attribute.randEventID = 0;
     p.attribute.lastDoneRandEventOlTime = p.attribute.onlineTime;
+    p.saveAttribute();
 };
 
 playerHandler.getTaskReward = function(req, res) {
@@ -1316,6 +1317,7 @@ playerHandler.addOnlineTime = function(req, res) {
     }
     p.attribute.onlineTime = params.totalTime;
     p.attribute.onlineUpdateTime = utils.getSecond();
+    p.saveAttribute();
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify(p.attribute)}))
 };
 
