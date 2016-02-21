@@ -922,7 +922,6 @@ playerHandler.checkFight = function(req, res) {
     */
     //if (win == params.win) {
     if (params.win) {
-        p.fightInfo.id = 20;
         var starNum = item.getStarNum(p, p.fightInfo.id, utils.getSecond() - p.fightInfo.startTime, p.fightInfo.mode);
         if (p.fightInfo.mode == 800) { //新手引导
             starNum = 3;
