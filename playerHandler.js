@@ -308,7 +308,7 @@ playerHandler.harvest = function(req, res) {
         p.addCoins(seed.harvest);
         event.emit('harvest', p, p.fields[params.fields[key]].itemID);
         delete p.fields[params.fields[key]];
-        redisClient.zincrby(code.GAME_NAME + 'coins', seed.harvest, p.id, null);
+       // redisClient.zincrby(code.GAME_NAME + 'coins', seed.harvest, p.id, null);
     }
     p.saveFields();
     p.saveAttribute();
@@ -872,6 +872,7 @@ playerHandler.checkFight = function(req, res) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     }
+
     /*
     var elem = dataapi.storyFight.findById(p.fightInfo.id);
     var data = JSON.parse(params.data);
@@ -921,6 +922,7 @@ playerHandler.checkFight = function(req, res) {
     */
     //if (win == params.win) {
     if (params.win) {
+        p.fightInfo.id = 20;
         var starNum = item.getStarNum(p, p.fightInfo.id, utils.getSecond() - p.fightInfo.startTime, p.fightInfo.mode);
         if (p.fightInfo.mode == 800) { //新手引导
             starNum = 3;
@@ -942,15 +944,16 @@ playerHandler.checkFight = function(req, res) {
                 p.attribute.bossFightHp = params.leftHp;
             }
         } else if (p.fightInfo.mode == 1) { //pve挑战模式
+
             var elem = dataapi.storyFight.findById(p.fightInfo.id);
             if (p.attribute.finishTask + 1 == p.fightInfo.id) {
                 addCoins = elem.awardCoin;
                 addMi = elem.awardMi;
                 addItem = elem.awardItem;
             } else {
-                addCoins = parseInt(elem.awardCoin * 0.3);
+                addCoins = Math.floor(elem.awardCoin * 0.3);
 		        if (elem.awardMi) {
-                	var lastElem = dataapi.bossFight.findById(p.fightInfo.id - 1);
+                	var lastElem = dataapi.storyFight.findById(p.fightInfo.id - 1);
 			        if (lastElem) {
 				        addCoins += Math.floor(lastElem.awardCoin * 0.35);
 			        }
@@ -959,10 +962,11 @@ playerHandler.checkFight = function(req, res) {
             p.addCoins(addCoins);
             p.addItem(addItem, 1);
             p.addDiamonds(addMi);
-        } else if (p.fightInfo.mode == 800){
+        } else if (p.fightInfo.mode == 800) {
             p.addCoins(100000);
             addCoins = 100000;
         }
+
         p.updateFightID(p.fightInfo.mode, p.fightInfo.id);
         p.saveAttribute();
         p.saveItem();

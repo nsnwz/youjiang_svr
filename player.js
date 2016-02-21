@@ -335,7 +335,7 @@ player.prototype.dealDayValue = function() {
     var date = new Date();
     var today = date.getFullYear() * 10000 + (date.getMonth()  + 1) * 100 + date.getDate();
     if (this.attribute.cleanDayTime != today) {
-        this.attribute.FreeStealNumUsed  = 0;
+        this.attribute.freeStealNumUsed  = 0;
         this.attribute.powerUsed = 0;
         this.attribute.bossFightHp = -1;
         this.attribute.mood = parseInt(Math.random() * 2 + 1);
@@ -403,6 +403,7 @@ player.prototype.addCoins = function(addNum) {
     }
     this.attribute.coins += addNum;
     this.attribute.totalCoins += addNum;
+    redisClient.zincrby(code.GAME_NAME + 'coins', addNum, this.id, null);
 };
 
 player.prototype.addDiamonds = function(addNum) {

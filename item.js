@@ -115,14 +115,19 @@ item.getStarNum = function(p, id, time, mode) {
                         if (id <= p.attribute.finishTask) {
                             num = num;
                         }
+                        if (isNaN(num)) {
+                            num = 3;
+                        }
                         return num;
                     } else {
                         return 3;
                     }
                 }
             }
+            return 0;
         }
     }
+    return 0;
 };
 
 item.getSeedType = function(itemID) {
