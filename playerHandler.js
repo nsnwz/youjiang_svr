@@ -1066,9 +1066,9 @@ playerHandler.getRandEvent = function(req, res) {
     } else if (p.attribute.randEventTimes == 1) {
         needTimes = 5 * 60;
     } else if (p.attribute.randEventTimes == 2) {
-        needTimes = 10 * 60;
+        needTimes = 5 * 60;
     } else {
-        needTimes = 15 * 60;
+        needTimes = 5 * 60;
     }
     /*
     if (p.attribute.onlineTime - p.attribute.lastDoneRandEventOlTime < needTimes) {
@@ -1355,4 +1355,20 @@ playerHandler.startFight = function(req, res) {
         p.fightInfo.startTime = utils.getSecond();
     }
     res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK}))
+};
+
+playerHandler.getPlantInfo = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
+        if (!err) {
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, stars : redis}));
+        } else {
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SYSTEM_ERROR}));
+        }
+    });
 };

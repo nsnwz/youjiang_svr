@@ -110,6 +110,7 @@ var player = function() {
     this.stealMePlayers = [];//保存偷取自己的用户信息
     this.cliSetData = {};//客户端使用的key/value
     this.task = new Task(); //任务
+    this.titles = [];
 };
 
 player.prototype.initFromDB = function(dbrecord) {
@@ -358,6 +359,10 @@ player.prototype.saveStealInfo = function() {
     redisClient.hset(this.id + code.GAME_NAME, "stealInfo", JSON.stringify(this.stealInfo), null);
 };
 
+player.prototype.saveTitle = function() {
+    redisClient.hset(this.id + code.GAME_NAME, "title", JSON.stringify(this.title), null);
+};
+
 player.prototype.checkStealNum = function() {
     var freeStealNumLeft = this.attribute.freeStealNumUsed > code.MAX_FREE_STEAL_NUM ? 0 : code.MAX_FREE_STEAL_NUM - this.attribute.freeStealNumUsed;
     if (this.attribute.buyStealNumLeft + freeStealNumLeft > 0) {
@@ -586,5 +591,27 @@ player.prototype.charge = function(num) {
     this.saveAttribute();
 };
 
+player.prototype.winPlantFight = function(num) {
+    async.waterfall([
+        function(cb) {
+            redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
+                var stars = {};
+                if (redis) {
+                    stars = JSON.parse(redis);
+                }
+                if (stars.hasOwnProperty(num)) {
+                    //todo return
+                } else {
+                    stars[num] = {uid : this.id};
+                    cb(null);
+                }
+            });
+        }, function(cb) {
+
+        }
+    ], function(err) {
+
+    });
+};
 
 module.exports = player;
