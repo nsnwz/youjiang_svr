@@ -28,6 +28,14 @@ var shopList =  {
     600009 : function(p, num) {
         p.attribute.bossFightHp = p.attribute.hp;
         p.saveAttribute();
+    },
+    600014 : function(p, num) {
+        p.attribute.buyStarNum += 1000 * num;
+        p.saveAttribute();
+    },
+    600015 : function(p, num) {
+        p.addCoins(num * 30000000);
+        p.saveAttribute();
     }
 };
 

@@ -793,9 +793,9 @@ playerHandler.enterFight = function(req, res) {
         log.writeErr(p.id + '|' + req.body.cmdID + "power not enough "  + '|' + p.attribute.powerUsed + '|' + p.attribute.buyPowerNum);
         return res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
     }
-    p.fightInfo.mode = params.mode;
-    p.fightInfo.id = params.id;
-    if (params.mode > 2) { //mode 1表示pve剧情模式，2表示pve无尽模式，800pve引导模式，801PVE随机事件，10PVP战斗模式
+    if (params.mode > 3) { //mode 1表示pve剧情模式，2表示pve无尽模式， 3表示星球BOSS模式， 800pve引导模式，801PVE随机事件，10PVP战斗模式
+        p.fightInfo.mode = params.mode;
+        p.fightInfo.id = params.id;
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     }
@@ -818,7 +818,20 @@ playerHandler.enterFight = function(req, res) {
             p.sendError(req, res, code.FIGHT.BOSS_HP_NOT_ENOUGH);
             return;
         }
+    } else if (params.mode == 3) {
+        var elem = dataapi.starBossFight.findById(params.id)
+        if (elem == null) {
+            log.writeErr(p.id + '|' + req.body.cmdID + "star boss id not exist "  + '|' + params.id);
+            p.sendError(req, res, code.TASK.TASK_NOT_EXIST);
+            return;
+        }
+        if (p.attribute.starNum + p.attribute.buyStarNum < ele.needStarNum) {
+            log.writeErr(p.id + '|' + req.body.cmdID + "star num not enough "  + '|' + params.id + '|' + p.attribute.starNum + '|' + p.attribute.buStarNum);
+            p.sendError(req, res, code.FIGHT.BOSS_HP_NOT_ENOUGH);
+            return;
+        }
     }
+    p.fightInfo.mode = params.mode;
     p.fightInfo.id = params.id;
     p.fightInfo.startTime = utils.getSecond();
     if (params.mode == 1) {
@@ -869,7 +882,7 @@ playerHandler.checkFight = function(req, res) {
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    if ((p.fightInfo.mode > 2 || p.fightInfo.mode == 0) && (p.fightInfo.mode != 800)) {
+    if ((p.fightInfo.mode > 3 || p.fightInfo.mode == 0) && (p.fightInfo.mode != 800)) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK}));
         return;
     }
@@ -926,6 +939,8 @@ playerHandler.checkFight = function(req, res) {
         var starNum = item.getStarNum(p, p.fightInfo.id, utils.getSecond() - p.fightInfo.startTime, p.fightInfo.mode);
         if (p.fightInfo.mode == 800) { //新手引导
             starNum = 3;
+        } else if (p.fightInfo.mode == 3) {
+            starNum = 0;
         }
         p.attribute.starNum += starNum;
         var elem;
@@ -944,7 +959,6 @@ playerHandler.checkFight = function(req, res) {
                 p.attribute.bossFightHp = params.leftHp;
             }
         } else if (p.fightInfo.mode == 1) { //pve挑战模式
-
             var elem = dataapi.storyFight.findById(p.fightInfo.id);
             if (p.attribute.finishTask + 1 == p.fightInfo.id) {
                 addCoins = elem.awardCoin;
@@ -965,8 +979,10 @@ playerHandler.checkFight = function(req, res) {
         } else if (p.fightInfo.mode == 800) {
             p.addCoins(100000);
             addCoins = 100000;
+        } else if (p.fightInfo.mode == 3) {
+            p.winPlantFight(req, res, p.fightInfo.id);
+            return;
         }
-
         p.updateFightID(p.fightInfo.mode, p.fightInfo.id);
         p.saveAttribute();
         p.saveItem();

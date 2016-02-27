@@ -60,9 +60,10 @@ var player = function() {
                         randEventTimes : 0, //随机事件的次数(每天清除)
                         randEventID : 0, //随机到的事件(每天清除)
                         offlineCoins : 0, //离线增加的金钱数
-                        firstCharge : 0,
+                        firstCharge : 0, //首次充值
                         chargeGift : 0,
-                        chargeGift1 :  0
+                        chargeGift1 :  0,
+                        buyStarNum : 0, //购买的星数
                        }; //
     this.bag = {}; //背包
     this.fields = {}; //田块种植信息 (
@@ -591,23 +592,43 @@ player.prototype.charge = function(num) {
     this.saveAttribute();
 };
 
-player.prototype.winPlantFight = function(num) {
+player.prototype.winPlantFight = function(req, res, id) {
+    var stars = {};
+    var first = false;
     async.waterfall([
         function(cb) {
             redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
-                var stars = {};
                 if (redis) {
                     stars = JSON.parse(redis);
                 }
-                if (stars.hasOwnProperty(num)) {
-                    //todo return
-                } else {
-                    stars[num] = {uid : this.id};
-                    cb(null);
+                if (!stars.hasOwnProperty(id)) {
+                    stars[id] = {uid : this.id};
+                    first = true;
                 }
+                cb(null);
             });
         }, function(cb) {
-
+            redis.hset(code.GAME_NAME, "stars", JSON.stringify(stars), function(err) {
+                if (!err) {
+                    var addCoins = 0;
+                    var addMi = 0;
+                    var addItem = 0;
+                    if (first) {
+                        var elem = dataapi.starBossFight.findById(id);
+                        addCoins = elem.awardCoin;
+                        addMi = elem.awardMi;
+                        addItem = elem.awardItem;
+                        this.addCoins(addCoins);
+                        this.addItem(addItem, 1);
+                        this.addDiamonds(addMi);
+                        this.saveAttribute();
+                        this.saveItem();
+                    }
+                    this.clearFightInfo();
+                    res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams :  JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
+                        fightResult : 1, bossFightHp : this.attribute.bossFightHp, starNum : 0, finishTask : this.attribute.finishTask, bossFinishTask : this.attribute.bossFinishTask})}));
+                }
+            });
         }
     ], function(err) {
 

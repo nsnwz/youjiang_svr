@@ -12,6 +12,7 @@ var seedRandom = require('./config/data/seedRandom');
 var shopList = require('./config/data/shopList');
 var taskConfig = require('./config/data/task');
 var bossFight = require('./config/data/bossFight');
+var starBossFight = require('./config/data/starBossFight.json');
 /**
  * Data model `new Data()`
  *
@@ -177,6 +178,6 @@ module.exports = {
     seedRandom : new Data(seedRandom, 'seedRandom'),
     shopList : new Data(shopList, 'shopList'),
     task : new Data(taskConfig, 'task'),
-    bossFight : new Data(bossFight, 'bossFight')
-
+    bossFight : new Data(bossFight, 'bossFight'),
+    starBossFight : new Data(starBossFight, 'starBossFight'),
 };
