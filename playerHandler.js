@@ -155,7 +155,9 @@ playerHandler.getPlayerInfo = function(req, res) {
             }, function(redis, cb) {
                 if (redis != null) {
                     var num = parseInt(redis);
-                    p.charge(num);
+                    if (!isNaN(num)) {
+                        p.charge(num);
+                    }
                 }
                 cb(null);
             }
@@ -621,7 +623,7 @@ playerHandler.getRankNearPlayers = function(req, res) {
                 var startID = 0;
                 var endID = selfRank + 50;
                 if (selfRank > 50) {
-                    startID -= 50;
+                    startID = selfRank - 50;
                 }
                 redisClient.zrevrange(code.GAME_NAME + params.rankName, startID, endID, cb);
             } else {

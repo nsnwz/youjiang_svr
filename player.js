@@ -36,6 +36,7 @@ var player = function() {
     this.attribute = {
                         coins:0, //钱数
                         totalCoins : 0, //累加获取的钱的总数
+                        createRoleTime : 0,
                         egretId : null,
                         diamonds:0, //钻石数目
                         maxFieldNum : 1, //田块数目
@@ -512,12 +513,13 @@ player.prototype.register = function(egretPlayer, newUid) {
     this.id = newUid;
     this.egretId = egretPlayer.id;
     this.name = egretPlayer.name;
-    this.pic = egretPlayer.pic;
+    this.pic = egretPlayer.pic;   
     this.saveBaseinfo();
     this.attribute.egretId = egretPlayer.id;
     this.attribute.coins = 0;
     this.attribute.totalCoins = this.attribute.coins;
     this.attribute.diamonds = 200;
+    this.attribute.createRoleTime = utils.getSecond();
     this.attribute.onlineUpdateTime = utils.getSecond();
     this.fields[3] = {itemID:10003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(10003), updateTime : 0};
     this.fields[4] = {itemID:20003, startTime:utils.getSecond(), growth:item.getSeedTotalValue(20003), updateTime : 0};
