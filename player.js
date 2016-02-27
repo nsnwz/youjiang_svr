@@ -513,7 +513,7 @@ player.prototype.register = function(egretPlayer, newUid) {
     this.id = newUid;
     this.egretId = egretPlayer.id;
     this.name = egretPlayer.name;
-    this.pic = egretPlayer.pic;   
+    this.pic = egretPlayer.pic;
     this.saveBaseinfo();
     this.attribute.egretId = egretPlayer.id;
     this.attribute.coins = 0;

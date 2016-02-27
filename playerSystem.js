@@ -3,6 +3,7 @@
  */
 
 var log = require('./log.js').helper;
+var utils = require('utils.js');
 
 var exp = module.exports;
 
