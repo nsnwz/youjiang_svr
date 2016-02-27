@@ -290,7 +290,7 @@ playerHandler.harvest = function(req, res) {
             for (var idx in values) {
                 needGrowth += parseInt(values[idx]);
             }
-            if (needGrowth - 100 > (p.fields[params.fields[key]].growth)) {
+            if ((p.fields[params.fields[key]].growth) < 20) {
                 log.writeErr(p.id + '|' + req.body.cmdID + "growth not enough "  + '|' + p.fields[params.fields[key]].itemID + "|" + needGrowth + '|' + p.fields[params.fields[key]].growth);
 		log.writeErr(key + "|" + typeof p.fields[params.fields[key]].growth + "|" + p.fields[params.fields[key]].growth);
                 p.sendError(req, res, code.PLANT.NOT_ENOUGH_TO_HARVEST);
@@ -310,7 +310,6 @@ playerHandler.harvest = function(req, res) {
         p.addCoins(seed.harvest);
         event.emit('harvest', p, p.fields[params.fields[key]].itemID);
         delete p.fields[params.fields[key]];
-       // redisClient.zincrby(code.GAME_NAME + 'coins', seed.harvest, p.id, null);
     }
     p.saveFields();
     p.saveAttribute();
