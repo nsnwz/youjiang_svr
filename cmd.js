@@ -166,7 +166,17 @@ cmds = {
     /*
         CMD 战斗开始
      */
-    1040 : playerHandler.startFight
+    1040 : playerHandler.startFight,
+    /*
+        CMD 获取星球挑战信息
+        OUTPT: {starNum : {uid : , gotGiftTime : }, ...}
+     */
+    1041 : playerHandler.getPlantInfo,
+    /*
+        CMD 获取星球挑战的奖励品
+        INPUT : {id : }
+     */
+    1042 : playerHandler.getPlantGift
 };
 
 module.exports = cmds;

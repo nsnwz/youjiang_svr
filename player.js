@@ -13,6 +13,8 @@ var Task = require('./task');
 var event = require('./event');
 var utils = require('./utils');
 var log = require('./log.js').helper;
+var async = require('async');
+var dataapi = require('./dataapi');
 
 /**
  * 用户数据信息
@@ -63,7 +65,7 @@ var player = function() {
                         firstCharge : 0, //首次充值
                         chargeGift : 0,
                         chargeGift1 :  0,
-                        buyStarNum : 0, //购买的星数
+                        buyStarNum : 0 //购买的星数
                        }; //
     this.bag = {}; //背包
     this.fields = {}; //田块种植信息 (
@@ -595,6 +597,7 @@ player.prototype.charge = function(num) {
 player.prototype.winPlantFight = function(req, res, id) {
     var stars = {};
     var first = false;
+    var self = this;
     async.waterfall([
         function(cb) {
             redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
@@ -602,13 +605,13 @@ player.prototype.winPlantFight = function(req, res, id) {
                     stars = JSON.parse(redis);
                 }
                 if (!stars.hasOwnProperty(id)) {
-                    stars[id] = {uid : this.id};
+                    stars[id] = {uid : self.id, gotGiftTime : 0};
                     first = true;
                 }
                 cb(null);
             });
         }, function(cb) {
-            redis.hset(code.GAME_NAME, "stars", JSON.stringify(stars), function(err) {
+            redisClient.hset(code.GAME_NAME, "stars", JSON.stringify(stars), function(err, redis) {
                 if (!err) {
                     var addCoins = 0;
                     var addMi = 0;
@@ -618,15 +621,15 @@ player.prototype.winPlantFight = function(req, res, id) {
                         addCoins = elem.awardCoin;
                         addMi = elem.awardMi;
                         addItem = elem.awardItem;
-                        this.addCoins(addCoins);
-                        this.addItem(addItem, 1);
-                        this.addDiamonds(addMi);
-                        this.saveAttribute();
-                        this.saveItem();
+                        self.addCoins(addCoins);
+                        self.addItem(addItem, 1);
+                        self.addDiamonds(addMi);
+                        self.saveAttribute();
+                        self.saveItem();
                     }
-                    this.clearFightInfo();
-                    res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams :  JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
-                        fightResult : 1, bossFightHp : this.attribute.bossFightHp, starNum : 0, finishTask : this.attribute.finishTask, bossFinishTask : this.attribute.bossFinishTask})}));
+                    self.clearFightInfo();
+                    res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams : JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
+                        fightResult : 1, bossFightHp : self.attribute.bossFightHp, starNum : 0, finishTask : self.attribute.finishTask, bossFinishTask : self.attribute.bossFinishTask})}));
                 }
             });
         }

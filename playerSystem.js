@@ -52,8 +52,8 @@ exp.save = function(res) {
 exp.delExpirePlayer = function() {
     var delPlayers = [];
     for (var key in players) {
-        if (utils.getSecond() - p.onlineUpdateTime > 2 * 60 * 60) {
-            delPlayers.push(p.id)
+        if (utils.getSecond() - players[key].onlineUpdateTime > 2 * 60 * 60) {
+            delPlayers.push(players[key].id)
         }
     }
     for (var key in delPlayers) {

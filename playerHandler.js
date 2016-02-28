@@ -9,15 +9,13 @@ var async = require('async');
 var code = require("./code");
 var dataapi = require('./dataapi');
 var item = require('./item');
-var calc = require('./calc');
-var skill = require('./skill');
 var shopList = require('./shopList');
 var event = require('./event');
 var task = require('./task');
 var egret = require('./egret');
 var utils = require('./utils');
 var log = require('./log.js').helper;
-var querystring = require('querystring');
+
 
 var playerHandler = module.exports;
 
@@ -825,7 +823,8 @@ playerHandler.enterFight = function(req, res) {
             p.sendError(req, res, code.TASK.TASK_NOT_EXIST);
             return;
         }
-        if (p.attribute.starNum + p.attribute.buyStarNum < ele.needStarNum) {
+        //if (p.attribute.starNum + p.attribute.buyStarNum < elem.needStarNum) {
+            if (p.attribute.starNum + p.attribute.buyStarNum < 0) {
             log.writeErr(p.id + '|' + req.body.cmdID + "star num not enough "  + '|' + params.id + '|' + p.attribute.starNum + '|' + p.attribute.buStarNum);
             p.sendError(req, res, code.FIGHT.BOSS_HP_NOT_ENOUGH);
             return;
@@ -1374,7 +1373,6 @@ playerHandler.startFight = function(req, res) {
 };
 
 playerHandler.getPlantInfo = function(req, res) {
-    var params = JSON.parse(req.body.cmdParams);
     var p = playerSystem.getPlayer(req.body.uid);
     if (!p) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
@@ -1383,6 +1381,43 @@ playerHandler.getPlantInfo = function(req, res) {
     redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
         if (!err) {
             res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, stars : redis}));
+        } else {
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SYSTEM_ERROR}));
+        }
+    });
+};
+
+playerHandler.getPlantGift = function(req, res) {
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
+        if (!err) {
+            if (redis) {
+                var stars = JSON.parse(redis);
+                if (stars.hasOwnProperty(params.id)) {
+                    var time = utils.get0Today();
+                    if (p.id == stars[params.id].uid && stars[params.id].gotGiftTime < time) {
+                        stars[params.id].gotGiftTime = utils.getSecond();
+                        p.addItem(40005, 1);
+                        p.addItem(10005, 1);
+                        p.addItem(20005, 1);
+                        p.addItem(30005, 1);
+                        p.addCoins(100000000);
+                        p.saveAttribute();
+                        p.saveItem();
+                        redisClient.hset(code.GAME_NAME, "stars", JSON.stringify(stars), function(err, redis) {});
+                    }
+                } else {
+                    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SYSTEM_ERROR}));
+                }
+            }  else {
+                res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SYSTEM_ERROR}));
+            }
+            res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({items : [10005, 20005, 30005, 40005], coins : 100000000})}));
         } else {
             res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SYSTEM_ERROR}));
         }
