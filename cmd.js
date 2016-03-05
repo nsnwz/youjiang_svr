@@ -182,7 +182,7 @@ cmds = {
         INPUT : {nun : }
         OUTPUT : {totalNum : , starNum : }
      */
-    1043 : playerHandler.getTotalNumAndStarNum10000
+    1043 : playerHandler.getTotalNumAndStarNum
 };
 
 module.exports = cmds;

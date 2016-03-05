@@ -1454,6 +1454,6 @@ playerHandler.getPlantGift = function(req, res) {
     });
 };
 
-playerHandler.getTotalNumAndStarNum10000 = function(req, res) {
+playerHandler.getTotalNumAndStarNum = function(req, res) {
 
 };
