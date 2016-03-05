@@ -176,7 +176,13 @@ cmds = {
         CMD 获取星球挑战的奖励品
         INPUT : {id : }
      */
-    1042 : playerHandler.getPlantGift
+    1042 : playerHandler.getPlantGift,
+    /*
+        CMD 获取总人数和战星大于xxx的人数
+        INPUT : {nun : }
+        OUTPUT : {totalNum : , starNum : }
+     */
+    1043 : playerHandler.getTotalNumAndStarNum10000
 };
 
 module.exports = cmds;

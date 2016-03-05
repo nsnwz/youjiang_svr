@@ -73,7 +73,7 @@ var player = function() {
                                 600001 : 0, //田块种植技能1，value为持续的到期时间
                                 600002 : 0, //田块种植技能2，value为持续的到期时间
                                 600003 : 0, //田块种植技能3，value为持续的到期时间
-                                fieldsLevel : 1 //拥有的总的田块数目
+                                fieldsLevel : 1 //田块的等级
                                };
     this.skills = {
                      10001 : {lv : 1, selected : true}, //战斗技能, 等级，是否选择
@@ -559,34 +559,33 @@ player.prototype.charge = function(num) {
     redisClient.hincrby(this.egretId + code.GAME_NAME, "money", -num, function(err) {});
     if (!this.attribute.firstCharge) {
         this.addDiamonds(num * 100 * 0.2);
-        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        for (var i = 1; i < 5; i++) {
+            this.addItem(i * 10000 + 5, 3);
+        }
+        this.skills[20001].useTimes += 10;
+        this.skills[20002].useTimes += 10;
         this.attribute.firstCharge = 1;
     }
     if (num == 10) {
         this.addDiamonds(num * 100 * 0.2);
     } else if (num == 50) {
-        this.skills[20001].useTimes += 4;
-        this.skills[20002].useTimes += 4;
-        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
-        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
         this.addDiamonds(num * 100 * 0.25);
     } else if (num == 100) {
-        this.skills[20001].useTimes += 4;
-        this.skills[20002].useTimes += 4;
-        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
-        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
-        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
-        this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.skills[20001].useTimes += 20;
+        this.skills[20002].useTimes += 20;
+        for (var i = 1; i < 4; i++) {
+            this.addItem(i * 10000 + 5, 12);
+        }
+        this.addItem(4 * 10000 + 5, 14);
         this.addItem(61000, 1);
         this.addDiamonds(num * 100 * 0.30);
     } else if (num == 1000) {
-        this.skills[20001].useTimes += 120;
-        this.skills[20002].useTimes += 120;
-        this.skills[30001].lv = 1;
-        for (var i = 0; i < 50; i++) {
-            this.addItem(Math.floor(Math.random() * 4 + 1) * 10000 + 5, 1);
+        this.skills[20001].useTimes += 200;
+        this.skills[20002].useTimes += 200;
+        for (var i = 1; i < 5; i++) {
+            this.addItem(i * 10000 + 5, 150);
         }
-        this.addItem(61001, 1);
+        this.skills[30001].lv = 1;
         this.addDiamonds(num * 100 * 0.4);
     }
     this.saveSkills();

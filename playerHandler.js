@@ -300,12 +300,20 @@ playerHandler.harvest = function(req, res) {
             return;
         }
     }
+    var coefficient = 1;
+    var ele = dataapi.other.findById('skill1UpLevelUpVal');
+    var eleAddCoefficient = ele.val.split('/');
+    if (p.fieldsAttribute.fieldsLevel > 1) {
+        if (p.fieldsAttribute.fieldsLevel <= eleAddCoefficient.length + 1) {
+            coefficient += parseFloat(eleAddCoefficient[p.fieldsAttribute.fieldsLevel - 2]);
+        }
+    }
     for (var key in params.fields) {
         var seed = dataapi.seed.findById(p.fields[params.fields[key]].itemID);
         p.attribute.atk += seed.attack;
         p.attribute.def += seed.defense;
         p.attribute.hp += seed.hp;
-        p.addCoins(seed.harvest);
+        p.addCoins(parseInt(seed.harvest * coefficient));
         event.emit('harvest', p, p.fields[params.fields[key]].itemID);
         delete p.fields[params.fields[key]];
     }
@@ -392,12 +400,12 @@ playerHandler.buyAccelerateGrowth = function(req, res) {
     for (var key in params) {
         if (!!p.fieldsAttribute[key]) {
             if (p.fieldsAttribute[key] < utils.getSecond) {
-                p.fieldsAttribute[key] = utils.getSecond() + params[key] * 20;
+                p.fieldsAttribute[key] = utils.getSecond() + params[key] * 300;
             } else {
-                p.fieldsAttribute[key] += params[key] * 20;
+                p.fieldsAttribute[key] += params[key] * 300;
             }
         } else {
-            p.fieldsAttribute[key] = utils.getSecond() + params[key] * 20;
+            p.fieldsAttribute[key] = utils.getSecond() + params[key] * 300;
         }
     }
     p.saveFieldsAttribute();
@@ -417,10 +425,32 @@ playerHandler.buyFields = function(req, res) {
     var needCoins = elem.val.split('/');
     if (p.attribute.maxFieldNum > needCoins.length) {
         log.writeErr(p.id + '|' + req.body.cmdID + "out max fields "  + '|' + p.attribute.maxFieldNum);
+        p.sendError(req, res, code.ITEM_ERROR.ITEM_NOT_ENOUGH);
+        return;
+    }
+    if (p.attribute.coins < parseInt(needCoins[p.attribute.maxFieldNum - 1])) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "shop key not exist "  + '|' + key);
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.ITEM_ERROR.NOT_ENOUGH_COINS_BUY_ITEM}));
+        return;
+    }
+    var elemMi = dataapi.other.findById('openDiCostMi');
+    var needDiamonds = elemMi.val.split('/');
+    if (p.attribute.maxFieldNum > needDiamonds.length) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "out max fields "  + '|' + p.attribute.maxFieldNum);
         p.sendError(req, res, code.ITEM_ERROR.HAVE_GOT_MAX_FIELDS);
         return;
     }
+    if (p.attribute.diamonds < parseInt(needDiamonds[p.attribute.maxFieldNum - 1])) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "shop key not exist "  + '|' + key);
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.ITEM_ERROR.DOMAIN_NOT_ENOUGH}));
+        return;
+    }
     if (!p.reduceCoins(parseInt(needCoins[p.attribute.maxFieldNum - 1]))) {
+        log.writeErr(p.id + '|' + req.body.cmdID + "coins not enough "  + '|' + needCoins[p.attribute.maxFieldNum - 1]);
+        p.sendError(req, res, code.ITEM_ERROR.NOT_ENOUGH_COINS_BUY_ITEM);
+        return;
+    }
+    if (!p.reduceDiamonds(parseInt(needDiamonds[p.attribute.maxFieldNum - 1]))) {
         log.writeErr(p.id + '|' + req.body.cmdID + "coins not enough "  + '|' + needCoins[p.attribute.maxFieldNum - 1]);
         p.sendError(req, res, code.ITEM_ERROR.NOT_ENOUGH_COINS_BUY_ITEM);
         return;
@@ -1422,4 +1452,8 @@ playerHandler.getPlantGift = function(req, res) {
             res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SYSTEM_ERROR}));
         }
     });
+};
+
+playerHandler.getTotalNumAndStarNum10000 = function(req, res) {
+
 };

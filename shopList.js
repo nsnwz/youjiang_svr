@@ -34,7 +34,13 @@ var shopList =  {
         p.saveAttribute();
     },
     600015 : function(p, num) {
-        p.addCoins(num * 30000000);
+        p.addCoins(num * 80000000);
+        p.saveAttribute();
+    },
+    600016 : function(p, num) {
+        p.attribute.atk = p.attribute.atk + parseInt(p.attribute.atk * 0.1);
+        p.attribute.def = p.attribute.def + parseInt(p.attribute.def * 0.1);
+        p.attribute.hp = p.attribute.hp + parseInt(p.attribute.hp * 0.1);
         p.saveAttribute();
     }
 };

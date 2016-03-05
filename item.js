@@ -123,7 +123,7 @@ item.getStarNum = function(p, id, time, mode) {
                         return 3;
                     }
                 }
-            } 
+            }
             return 1;
         }
     }
