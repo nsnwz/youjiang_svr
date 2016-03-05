@@ -1016,6 +1016,7 @@ playerHandler.checkFight = function(req, res) {
         p.saveAttribute();
         p.saveItem();
         redisClient.zincrby(code.GAME_NAME + 'star', starNum, p.id, null);
+        p.addTotalStar();
         event.emit('fight', p, starNum);
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams :  JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
                                fightResult : params.win, bossFightHp : p.attribute.bossFightHp, starNum : starNum, finishTask : p.attribute.finishTask, bossFinishTask : p.attribute.bossFinishTask})}));
@@ -1455,5 +1456,29 @@ playerHandler.getPlantGift = function(req, res) {
 };
 
 playerHandler.getTotalNumAndStarNum = function(req, res) {
-
-};
+    var params = JSON.parse(req.body.cmdParams);
+    var p = playerSystem.getPlayer(req.body.uid);
+    if (!p) {
+        res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
+        return;
+    }
+    var totalNum = 0;
+    asyn.waterfall([
+      function(cb) {
+        redisClient.getKey("guid", function(err, redis) {
+            if (!err) {
+               totalNum = redis;
+            }
+            cb(null);
+        });
+      }, function(cb) {
+            redisClient.zcount(code.GAME_NAME + "totalStar", params.num, '+inf', function(err, redis) {
+                if (!err) {
+                    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({totalNum : totalNum, starNum : redis})}));
+                }
+            }) ;
+      }
+    ], function(err) {
+        res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.SYSTEM_ERROR}));
+    });
+}
