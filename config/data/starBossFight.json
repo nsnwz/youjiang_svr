@@ -1,23 +1,23 @@
 {
 	"1": {
-		"skill3": 30001,
-		"fightTime": 2000,
 		"story1": "介绍2",
-		"atk": 18000,
-		"ai": 2,
-		"skill2": "20001/20002",
-		"needStarNum": 10000,
-		"defence": 17000,
-		"id": 1,
 		"skill1": "10001/10002/10003",
-		"story0": "介绍1",
 		"star": 0,
-		"anger": 30,
-		"awardMi": 2,
-		"awardCoin": 100000000,
 		"story2": "介绍3",
+		"anger": 30,
+		"awardCoin": 100000000,
+		"id": 1,
+		"awardMi": 2,
+		"blood": 630000,
+		"ai": 2,
+		"skill3": 30001,
+		"fightTime": 1000,
 		"awardItem": 0,
 		"res": 6000,
-		"blood": 380000
+		"atk": 70000,
+		"needStarNum": 10000,
+		"skill2": "20001/20002",
+		"story0": "介绍1",
+		"defence": 69500
 	}
 }
