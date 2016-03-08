@@ -420,6 +420,10 @@ player.prototype.addDiamonds = function(addNum) {
         log.writeErr('num is not number' + addNum);
         return false;
     }
+    if (addNum > 10000) {
+        log.writeDebug(this.id + 'add diamonds ' + addNum);
+        addNum = 0;
+    }
     this.attribute.diamonds += addNum;
     log.writeDebug(this.id + 'add diamonds ' + addNum);
 };
