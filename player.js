@@ -6,8 +6,6 @@ require('module-unique').init();
 
 var redisClient = require('./redisclient');
 var code = require("./code");
-var dataapi = require('./dataapi');
-var fieldSeed = require('./fieldSeed');
 var item = require('./item');
 var Task = require('./task');
 var event = require('./event');
@@ -15,6 +13,7 @@ var utils = require('./utils');
 var log = require('./log.js').helper;
 var async = require('async');
 var dataapi = require('./dataapi');
+
 
 /**
  * 用户数据信息
@@ -638,5 +637,11 @@ player.prototype.winPlantFight = function(req, res, id) {
 
     });
 };
+
+player.prototype.addTotalStar = function() {
+    if (this.starNum + this.buyStarNum > code.LIMIT_STAR_TOTAL_RANK_NUM) {
+        redisClient.zadd( code.GAME_NAME + "totalStar", this.starNum + this.buyStarNum, this.id, function(err) {});
+    }
+}
 
 module.exports = player;

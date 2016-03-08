@@ -32,6 +32,7 @@ var shopList =  {
     600014 : function(p, num) {
         p.attribute.buyStarNum += 1000 * num;
         p.saveAttribute();
+        p.addTotalStar();
     },
     600015 : function(p, num) {
         p.addCoins(num * 80000000);
