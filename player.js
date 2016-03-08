@@ -412,7 +412,8 @@ player.prototype.addCoins = function(addNum) {
     }
     this.attribute.coins += addNum;
     this.attribute.totalCoins += addNum;
-    redisClient.zincrby(code.GAME_NAME + 'coins', addNum, this.id, null);
+    redisClient.zincrby(code.GAME_NAME + 'coins', addNum, this.id, null);  
+    log.writeDebug(this.id + 'add coins ' + addNum);
 };
 
 player.prototype.addDiamonds = function(addNum) {
@@ -421,6 +422,7 @@ player.prototype.addDiamonds = function(addNum) {
         return false;
     }
     this.attribute.diamonds += addNum;
+    log.writeDebug(this.id + 'add diamonds ' + addNum);
 };
 
 player.prototype.saveTask = function() {

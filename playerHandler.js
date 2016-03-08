@@ -167,6 +167,10 @@ playerHandler.getPlayerInfo = function(req, res) {
                 p.dealSeedOffline();
                 p.dealofflineCoins();
                 p.dealDayValue();
+                if (p.attribute.diamonds > 10000) {
+                    p.attribute.diamonds = 200;
+                    log.writeErr(p.id + '|' + 'diamonds error' + p.attribute.diamonds);
+                }
                 log.writeDebug(p.fields);
                 log.writeDebug('login ' + p.id);
                 res.end(JSON.stringify({cmdID : req.body.cmdID, ret : 0, cmdParams : p.getLoginJson()}));
