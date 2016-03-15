@@ -46,8 +46,6 @@ var task = function() {
                           40004 : {num : 0, FinNum : 0},
                           40005 : {num : 0, FinNum : 0},
                           100000 : {num : 0, FinNum : 0}
-
-
                          }};
                   };
 
@@ -280,9 +278,9 @@ task.prototype.taskCheck = {
     40001 : checkTaskType5,
     40002 : checkTaskType5,
     40003 : checkTaskType5,
-    40003 : checkTaskType5,
-    40003 : checkTaskType5,
-    10000 : checkTaskType5
+    40004 : checkTaskType5,
+    40005 : checkTaskType5,
+    100000 : checkTaskType5
 };
 
 task.prototype.checkFinTask = function(p, taskID) {
@@ -366,9 +364,17 @@ task.prototype.giveTaskReward = function(p, taskID) {
     }
     p.addCoins(ele.reward1);
     p.addDiamonds(ele.reward2);
-    p.addItem(ele.reward3, 1);
+    if (ele.reward3 == 61001) {
+        p.skills[30001].lv = 1;
+    }
+    if (ele.reward3 == 61000) {
+        p.addItem(ele.reward3, 10);
+    } else {
+        p.addItem(ele.reward3, 1);
+    }
     p.saveAttribute();
     p.saveItem();
+    p.saveSkills();
     return {reward1 : ele.reward1, reward2 : ele.reward2, reward3 : ele.reward3};
 };
 

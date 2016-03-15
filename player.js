@@ -13,6 +13,7 @@ var utils = require('./utils');
 var log = require('./log.js').helper;
 var async = require('async');
 var dataapi = require('./dataapi');
+var channel = require('./config/channel.json');
 
 
 /**
@@ -34,12 +35,18 @@ var player = function() {
     this.name = 'default';
     this.pic = undefined;
     this.egretId = undefined;
+    this.gender = undefined;
+    this.province = undefined;
+    this.city = undefined;
+    this.svrID = 0;
+    this.lastLoginID = 0;
     this.attribute = {
                         coins:0, //钱数
                         totalCoins : 0, //累加获取的钱的总数
                         createRoleTime : 0,
                         egretId : null,
                         diamonds:0, //钻石数目
+                        totalDiamonds : 0,
                         maxFieldNum : 1, //田块数目
                         atk : 300, //攻击
                         def : 200, //防御
@@ -127,15 +134,28 @@ player.prototype.initFromDB = function(dbrecord) {
     this.headimgurl = dbrecord.headimgurl;
     this.privilege = dbrecord.privilege;
     */
+
     this.id = dbrecord.id;
     this.name = dbrecord.name;
     this.pic = dbrecord.pic;
     this.egretId = dbrecord.egretId;
+    if (dbrecord.gender) {
+        this.gender = dbrecord.gender;
+    }
+    if (dbrecord.province) {
+        this.province = dbrecord.province;
+    }
+    if (dbrecord.city) {
+        this.city = dbrecord.city;
+    }
+    if (dbrecord.lastLoginID) {
+        this.lastLoginID = dbrecord.lastLoginID;
+    }
 };
 
 player.prototype.getLoginJson = function() {
     var nowTime = utils.getSecond();
-    return JSON.stringify({id:this.id, name:this.name, pic:this.pic, egretId : this.egretId, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
+    return JSON.stringify({id:this.id, name:this.name, pic:this.pic, egretId : this.egretId, lastLoginID : this.lastLoginID, item:JSON.stringify(this.bag), fields : JSON.stringify(this.fields), attribute : JSON.stringify(this.attribute),
     fieldsAttribute : JSON.stringify(this.fieldsAttribute), now : nowTime , skills : JSON.stringify(this.skills)});
 };
 
@@ -167,7 +187,7 @@ player.prototype.initFromWeiXin = function(weixin) {
 
 player.prototype.saveBaseinfo = function() {
     //var data = {openid:this.openid, nickname:this.nickname, sex:this.sex, language:this.language, city:this.city, province:this.province, country:this.country, headimgurl:this.headimgurl, privilege:this.privilege};
-    var data = {id:this.id, name:this.name, pic:this.pic, egretId : this.egretId};
+    var data = {id:this.id, name:this.name, pic:this.pic, egretId : this.egretId, gender : this.gender,  province : this.province, city : this.city, lastLoginID : this.lastLoginID};
     redisClient.updateKey(this.egretId, JSON.stringify(data));
 };
 
@@ -193,7 +213,6 @@ player.prototype.reduceItem = function(nID, nNum) {
         }
     }
     console.log(JSON.stringify(this.bag));
-    //redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
     return true;
 };
 
@@ -206,15 +225,19 @@ player.prototype.addItem = function(nID, nAmount) {
         this.bag[nID] = 0;
         this.bag[nID] += nAmount;
     }
-    if (nID == 60000) {
-        event.emit('60000', this);
+    if (nID == 61000) {
+        event.emit('61000', this);
     }
     console.log(JSON.stringify(this.bag));
     return true;
 };
 
 player.prototype.saveItem = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "item", JSON.stringify(this.bag), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "item", JSON.stringify(this.bag), null);
+    }
 };
 
 player.prototype.reduceCoins = function(num) {
@@ -257,15 +280,27 @@ player.prototype.checkCanPlant = function(fieldID) {
 };
 
 player.prototype.saveFields = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "fields", JSON.stringify(this.fields), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "fields", JSON.stringify(this.fields), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "fields", JSON.stringify(this.fields), null);
+    }
 };
 
 player.prototype.saveAttribute = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "attribute", JSON.stringify(this.attribute), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "attribute", JSON.stringify(this.attribute), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "attribute", JSON.stringify(this.attribute), null);
+    }
 };
 
 player.prototype.saveFieldsAttribute = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "fieldsAttribute", JSON.stringify(this.fieldsAttribute), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "fieldsAttribute", JSON.stringify(this.fieldsAttribute), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "fieldsAttribute", JSON.stringify(this.fieldsAttribute), null);
+    }
 };
 
 player.prototype.sendError = function(req, res, errorCode) {
@@ -310,7 +345,11 @@ player.prototype.setSkillSelected = function(skillID) {
 };
 
 player.prototype.saveSkills = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "skills", JSON.stringify(this.skills), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "skills", JSON.stringify(this.skills), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "skills", JSON.stringify(this.skills), null);
+    }
 };
 
 player.prototype.checkSkillCanLevelUp = function(skillID) {
@@ -358,11 +397,19 @@ player.prototype.dealDayValue = function() {
 };
 
 player.prototype.saveStealInfo = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "stealInfo", JSON.stringify(this.stealInfo), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "stealInfo", JSON.stringify(this.stealInfo), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "stealInfo", JSON.stringify(this.stealInfo), null);
+    }
 };
 
 player.prototype.saveTitle = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "title", JSON.stringify(this.title), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "title", JSON.stringify(this.title), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "title", JSON.stringify(this.title), null);
+    }
 };
 
 player.prototype.checkStealNum = function() {
@@ -411,7 +458,11 @@ player.prototype.addCoins = function(addNum) {
     }
     this.attribute.coins += addNum;
     this.attribute.totalCoins += addNum;
-    redisClient.zincrby(code.GAME_NAME + 'coins', addNum, this.id, null);  
+    if (this.svrID == 0) {
+        redisClient.zincrby(code.GAME_NAME + 'coins', addNum, this.id, null);
+    } else {
+        redisClient.zincrby(code.GAME_NAME + 'coins' + this.svrID, addNum, this.id, null);
+    }
     log.writeDebug(this.id + 'add coins ' + addNum);
 };
 
@@ -425,15 +476,24 @@ player.prototype.addDiamonds = function(addNum) {
         addNum = 0;
     }
     this.attribute.diamonds += addNum;
+    this.attribute.totalDiamonds += addNum;
     log.writeDebug(this.id + 'add diamonds ' + addNum);
 };
 
 player.prototype.saveTask = function() {
-    redisClient.hset(this.id + code.GAME_NAME, "task", JSON.stringify(this.task._task), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "task", JSON.stringify(this.task._task), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "task", JSON.stringify(this.task._task), null);
+    }
 };
 
 player.prototype.saveDayHarvest = function(taskID) {
-    redisClient.hset(this.id + code.GAME_NAME, "dayHarvest", JSON.stringify(this.dayHarvest), null);
+    if (this.svrID == 0) {
+        redisClient.hset(this.id + code.GAME_NAME, "dayHarvest", JSON.stringify(this.dayHarvest), null);
+    } else {
+        redisClient.hset(this.id + code.GAME_NAME + this.svrID, "dayHarvest", JSON.stringify(this.dayHarvest), null);
+    }
 };
 
 player.prototype.checkCanUseSkill = function (id) {
@@ -522,13 +582,33 @@ player.prototype.reducePower = function(mode) {
 
 };
 
-player.prototype.register = function(egretPlayer, newUid) {
+player.prototype.register = function(egretPlayer, newUid, svrID) {
+    if (channel.channel == code.CHANNEL.HOOWU) {
+        this.id = newUid;
+        this.egretId = egretPlayer.openid;
+        this.name = egretPlayer.nick;
+        this.pic = egretPlayer.avatar;
+        this.gender = egretPlayer.gender;
+        this.lastLoginID = svrID;
+        this.saveBaseinfo();
+        this.attribute.egretId = egretPlayer.id;
+    } else {
+        this.id = newUid;
+        this.egretId = egretPlayer.id;
+        this.name = egretPlayer.name;
+        this.pic = egretPlayer.pic;
+        this.lastLoginID = svrID;
+        this.saveBaseinfo();
+        this.attribute.egretId = egretPlayer.id;
+    }
+    this.svrID = svrID;
+    /*
     this.id = newUid;
     this.egretId = egretPlayer.id;
     this.name = egretPlayer.name;
     this.pic = egretPlayer.pic;
     this.saveBaseinfo();
-    this.attribute.egretId = egretPlayer.id;
+    this.attribute.egretId = egretPlayer.id;*/
     this.attribute.coins = 0;
     this.attribute.totalCoins = this.attribute.coins;
     this.attribute.diamonds = 200;
@@ -561,7 +641,7 @@ player.prototype.updateFightID = function(mode, id) {
 
 player.prototype.charge = function(num) {
     this.addDiamonds(num * 100);
-    redisClient.hincrby(this.egretId + code.GAME_NAME, "money", -num, function(err) {});
+    redisClient.hincrby(this.egretId + code.GAME_NAME + this.svrID, "money", -num, function(err) {});
     if (!this.attribute.firstCharge) {
         this.addDiamonds(num * 100 * 0.2);
         for (var i = 1; i < 5; i++) {
@@ -582,7 +662,7 @@ player.prototype.charge = function(num) {
             this.addItem(i * 10000 + 5, 12);
         }
         this.addItem(4 * 10000 + 5, 14);
-        this.addItem(61000, 1);
+        this.addItem(61000, 10);
         this.addDiamonds(num * 100 * 0.30);
     } else if (num == 1000) {
         this.skills[20001].useTimes += 200;
@@ -604,38 +684,52 @@ player.prototype.winPlantFight = function(req, res, id) {
     var self = this;
     async.waterfall([
         function(cb) {
-            redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
-                if (redis) {
-                    stars = JSON.parse(redis);
-                }
-                if (!stars.hasOwnProperty(id)) {
-                    stars[id] = {uid : self.id, gotGiftTime : 0};
-                    first = true;
-                }
-                cb(null);
-            });
+            if (self.svrID == 0) {
+                redisClient.hget(code.GAME_NAME, "stars", function(err, redis) {
+                    cb(err, redis);
+                });
+            } else {
+                redisClient.hget(code.GAME_NAME + self.svrID, "stars", function (err, redis) {
+                    cb(err, redis);
+                });
+            }
+        }, function(redis, cb) {
+            if (redis) {
+                stars = JSON.parse(redis);
+            }
+            if (!stars.hasOwnProperty(id)) {
+                stars[id] = {uid : self.id, gotGiftTime : 0};
+                first = true;
+            }
+            cb(null);
+        },function(cb) {
+            if (self.svrID == 0) {
+                redisClient.hset(code.GAME_NAME, "stars", JSON.stringify(stars), function(err, redis) {
+                    cb(err);
+                });
+            } else {
+                redisClient.hset(code.GAME_NAME + self.svrID, "stars", JSON.stringify(stars), function(err, redis) {
+                    cb(err);
+                });
+            }
         }, function(cb) {
-            redisClient.hset(code.GAME_NAME, "stars", JSON.stringify(stars), function(err, redis) {
-                if (!err) {
-                    var addCoins = 0;
-                    var addMi = 0;
-                    var addItem = 0;
-                    if (first) {
-                        var elem = dataapi.starBossFight.findById(id);
-                        addCoins = elem.awardCoin;
-                        addMi = elem.awardMi;
-                        addItem = elem.awardItem;
-                        self.addCoins(addCoins);
-                        self.addItem(addItem, 1);
-                        self.addDiamonds(addMi);
-                        self.saveAttribute();
-                        self.saveItem();
-                    }
-                    self.clearFightInfo();
-                    res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams : JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
-                        fightResult : 1, bossFightHp : self.attribute.bossFightHp, starNum : 0, finishTask : self.attribute.finishTask, bossFinishTask : self.attribute.bossFinishTask})}));
-                }
-            });
+            var addCoins = 0;
+            var addMi = 0;
+            var addItem = 0;
+            if (first) {
+                var elem = dataapi.starBossFight.findById(id);
+                addCoins = elem.awardCoin;
+                addMi = elem.awardMi;
+                addItem = elem.awardItem;
+                self.addCoins(addCoins);
+                self.addItem(addItem, 1);
+                self.addDiamonds(addMi);
+                self.saveAttribute();
+                self.saveItem();
+            }
+            self.clearFightInfo();
+            res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams : JSON.stringify({awardCoin : addCoins, awardItem : addItem, awardMi : addMi,
+                fightResult : 1, bossFightHp : self.attribute.bossFightHp, starNum : 0, finishTask : self.attribute.finishTask, bossFinishTask : self.attribute.bossFinishTask})}));
         }
     ], function(err) {
 
@@ -644,7 +738,11 @@ player.prototype.winPlantFight = function(req, res, id) {
 
 player.prototype.addTotalStar = function() {
     if (this.starNum + this.buyStarNum > code.LIMIT_STAR_TOTAL_RANK_NUM) {
-        redisClient.zadd( code.GAME_NAME + "totalStar", this.starNum + this.buyStarNum, this.id, function(err) {});
+        if (this.svrID == 0) {
+            redisClient.zadd( code.GAME_NAME + "totalStar", this.starNum + this.buyStarNum, this.id, function(err) {});
+        } else {
+            redisClient.zadd( code.GAME_NAME + "totalStar" + this.svrID, this.starNum + this.buyStarNum, this.id, function(err) {});
+        }
     }
 }
 

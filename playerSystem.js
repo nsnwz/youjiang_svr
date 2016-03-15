@@ -11,52 +11,48 @@ var players = {};
 
 exp.addPlayer = function(player) {
     var id = player.id;
-    if (!!players[id]) {
+    var svrID = player.svrID;
+    if (!players[svrID]) {
+        players[svrID] = {};
+    }
+    if (!!players[svrID][id]) {
         log.writeErr('add player twice ' + player.id);
         return false;
     }
-    players[id] = player;
+    players[svrID][id] = player;
     return true;
 };
 
-exp.removePlayer = function(id) {
-    if (!!players[id]) {
-        delete players[id];
+exp.removePlayer = function(id, svrID) {
+    if (!!players[svrID] && !!players[svrID][id]) {
+        delete players[svrID][id];
         return true;
     }
     log.writeErr('remove player error not exist ' + id);
     return false;
 };
 
-exp.getPlayer = function(id) {
-    if (!!players[id]) {
-        return players[id];
+exp.getPlayer = function(id, svrID) {
+    if (!!players[svrID] && !!players[svrID][id]) {
+        return players[svrID][id];
     } else {
         console.log('player not fond: ', id);
         return null;
     }
 };
 
-exp.getNumbersOfPlayers = function() {
-    return players.length;
-};
-
-exp.save = function(res) {
-    var nID = res.id;
-    var pPlayer = players[nID];
-    if (!!pPlayer) {
-        //pPlayer.save();
-    }
-};
 
 exp.delExpirePlayer = function() {
     var delPlayers = [];
     for (var key in players) {
-        if (utils.getSecond() - players[key].onlineUpdateTime > 2 * 60 * 60) {
-            delPlayers.push(players[key].id)
+        for (var index in players[key]) {
+            if (utils.getSecond() - players[key][index].onlineUpdateTime > 2 * 60 * 60) {
+                var idSvrID = [players[key][index].id, players[key][index].svrID];
+                delPlayers.push(idSvrID);
+            }
         }
     }
     for (var key in delPlayers) {
-        exp.removePlayer(delPlayers[key]);
+        exp.removePlayer(delPlayers[key][0], delPlayers[key][1]);
     }
 };

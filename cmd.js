@@ -182,7 +182,13 @@ cmds = {
         INPUT : {nun : }
         OUTPUT : {totalNum : , starNum : }
      */
-    1043 : playerHandler.getTotalNumAndStarNum
+    1043 : playerHandler.getTotalNumAndStarNum,
+    /*
+        CMD 获取上次登入的服ID
+        INPUT ：｛token : ｝
+        OUTPUT : {lastLoginID : }
+    */
+    1044 : playerHandler.getLatLOginID
 };
 
 module.exports = cmds;

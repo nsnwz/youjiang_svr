@@ -45,5 +45,8 @@ module.exports = {
     CHARGE : {
         NOT_ADD_ANY_MONEY : 30000
     },
+    CHANNEL : {
+        HOOWU : 4000
+    },
     MAX_FREE_STEAL_NUM : 5
 };

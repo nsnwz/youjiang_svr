@@ -27,7 +27,7 @@ event.on('fight', function(p, starNum) {
     p.saveTask();
 });
 
-event.on('60000', function(p) {
+event.on('61000', function(p) {
     p.task.updateTask100000();
 });
 

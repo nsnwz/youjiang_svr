@@ -35,7 +35,7 @@ var httpServer = http.createServer(function (req, res) {
                 log.writeDebug(req.body.uid + '|' + req.body.cmdID + '|' + req.body.cmdParams);
                 console.log(req.body.uid + '|' + req.body.cmdID + '|' + req.body.cmdParams);
                 if (typeof cmds[req.body.cmdID] == 'function') {
-                    var p = playerSystem.getPlayer(req.body.uid);
+                    var p = playerSystem.getPlayer(req.body.uid, req.body.svrID);
                     if (p) {
                         log.writeDebug(p.fields);
                     }
