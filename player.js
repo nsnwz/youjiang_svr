@@ -739,9 +739,9 @@ player.prototype.winPlantFight = function(req, res, id) {
 player.prototype.addTotalStar = function() {
     if (this.starNum + this.buyStarNum > code.LIMIT_STAR_TOTAL_RANK_NUM) {
         if (this.svrID == 0) {
-            redisClient.zadd( code.GAME_NAME + "totalStar", this.starNum + this.buyStarNum, this.id, function(err) {});
+            redisClient.zadd( code.GAME_NAME + "totalStar" , this.attribute.starNum + this.attribute.buyStarNum, this.id, function(err) {});
         } else {
-            redisClient.zadd( code.GAME_NAME + "totalStar" + this.svrID, this.starNum + this.buyStarNum, this.id, function(err) {});
+            redisClient.zadd( code.GAME_NAME + "totalStar" + this.svrID, this.attribute.starNum + this.attribute.buyStarNum, this.id, function(err) {});
         }
     }
 }

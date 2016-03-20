@@ -188,7 +188,16 @@ cmds = {
         INPUT ：｛token : ｝
         OUTPUT : {lastLoginID : }
     */
-    1044 : playerHandler.getLatLOginID
+    1044 : playerHandler.getLatLOginID,
+    /*
+     CMD 获取游戏版本号
+    */
+    1045 : playerHandler.getGameVersion,
+    /*
+        CMD 获取订单号
+        INPUT {total_free : num}
+     */
+    1046 : playerHandler.createOrder
 };
 
 module.exports = cmds;

@@ -5,8 +5,6 @@
 var querystring = require('querystring');
 var url = require('url');
 var http = require('http');
-var https = require('https');
-var util = require('util');
 var crypto = require('crypto');
 var utils = require('./utils');
 
@@ -35,6 +33,7 @@ function createSign(param, appkey) {
 
 var post = function(urlstr, obj, callback) {
     var contentStr = querystring.stringify(obj);
+
 
     var contentLen = Buffer.byteLength(contentStr, 'utf8');
     var urlData = url.parse(urlstr);
@@ -80,7 +79,7 @@ function getUserToken(code, callback) {
     post(urlstr, obj, callback);
 };
 
-function getUserInfo(token, callback) {
+function getUserInfo_ex(token, callback) {
     var obj = {
         appid : appid,
         token : token
@@ -94,7 +93,7 @@ hoowu.getUserInfo = function(code, callback) {
     var token_result = undefined;
     getUserToken(code, function(result) {
         token_result = JSON.parse(result);
-        getUserInfo(token_result.access_token, function(result) {
+        getUserInfo_ex(token_result.access_token, function(result) {
             result = JSON.parse(result);
             callback(err, result, token_result)
         })
@@ -102,12 +101,19 @@ hoowu.getUserInfo = function(code, callback) {
 };
 
 hoowu.createOrder = function(total_fee, token, callback) {
+    var subject = { 5 :   "500晶石",
+                    10  :  "1000晶石(返利20%)",
+                    50 :  "5000晶石(返利25%)礼包",
+                    100 :  "1万晶石(返利30%)大礼包",
+                    1000 :  "10万晶石(返利40%)超级礼包"
+    };
+
     var obj = {
         appid : appid,
         token : token,
         total_fee : total_fee,
-        subject : '晶钻',
-        body : '充值所得'
+        subject : subject[total_free],
+        body : ''
     };
     obj.sign = createSign(obj, appKey);
     var urlstr = 'http://dev.api.web.51h5.com/pay/order';
