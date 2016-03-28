@@ -1704,7 +1704,7 @@ playerHandler.getLatLOginID = function(req, res) {
 };
 
 playerHandler.getGameVersion = function(req, res) {
-    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({ version : 3000})}));
+    res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : JSON.stringify({ version : 3001})}));
 };
 
 playerHandler.createOrder = function(req, res) {
