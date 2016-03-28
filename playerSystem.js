@@ -4,6 +4,9 @@
 
 var log = require('./log.js').helper;
 var utils = require('./utils.js');
+var channel = require('./config/channel.json');
+var code = require("./code");
+var hoowu = require('./hoowu');
 
 var exp = module.exports;
 
@@ -55,4 +58,16 @@ exp.delExpirePlayer = function() {
     for (var key in delPlayers) {
         exp.removePlayer(delPlayers[key][0], delPlayers[key][1]);
     }
+
+    if (channel.channel == code.CHANNEL.HOOWU) {
+        for (var key in players) {
+            for (var index in players[key]) {
+                if (utils.getSecond() - players[key][index].refreshTime > 60 * 60) {
+                    hoowu.refreshToken(players[key][index]);
+                }
+            }
+        }
+    }
+
+
 };

@@ -31,6 +31,10 @@ var player = function() {
     this.headimgurl = null;
     this.privilege = null;
     */
+    this.access_token = undefined;
+    this.refresh_token  = undefined;
+    this.expire_in = 0;
+    this.refreshTime = 0;
     this.id = undefined;
     this.name = 'default';
     this.pic = undefined;
@@ -585,13 +589,13 @@ player.prototype.reducePower = function(mode) {
 player.prototype.register = function(egretPlayer, newUid, svrID) {
     if (channel.channel == code.CHANNEL.HOOWU) {
         this.id = newUid;
-        this.egretId = egretPlayer.openid;
-        this.name = egretPlayer.nick;
-        this.pic = egretPlayer.avatar;
-        this.gender = egretPlayer.gender;
+        this.egretId = egretPlayer.data.openid;
+        this.name = egretPlayer.data.nick;
+        this.pic = egretPlayer.data.avatar;
+        this.gender = egretPlayer.data.gender;
         this.lastLoginID = svrID;
         this.saveBaseinfo();
-        this.attribute.egretId = egretPlayer.id;
+        this.attribute.egretId = egretPlayer.data.openid;
     } else {
         this.id = newUid;
         this.egretId = egretPlayer.id;
@@ -744,6 +748,13 @@ player.prototype.addTotalStar = function() {
             redisClient.zadd( code.GAME_NAME + "totalStar" + this.svrID, this.attribute.starNum + this.attribute.buyStarNum, this.id, function(err) {});
         }
     }
+}
+
+player.prototype.initHoowuToken = function(huwoTokenInfo) {
+    this.access_token = huwoTokenInfo.data.access_token;
+    this.refresh_token = huwoTokenInfo.data.refresh_token;
+    this.expire_in = huwoTokenInfo.data.expire_in;
+    this.refreshTime = utils.getSecond();
 }
 
 module.exports = player;

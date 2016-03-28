@@ -7,11 +7,35 @@ var url = require('url');
 var http = require('http');
 var crypto = require('crypto');
 var utils = require('./utils');
+var buffer = require("buffer").Buffer;
 
-var appid = " 8u5vbpxj";
+var appid = "8u5vbpxj";
 var appKey = "9y0i90dfxrh5du4ykv5namehaz3zuccm";
 
 var hoowu = module.exports;
+
+function geneSign(params, secret){
+    var stingA = "";
+
+    for (var key of Object.keys(params).sort()) {
+        if (!!!params[key] || key === 'sign') {
+            continue;
+        }
+        if (!!!stingA.length) {
+            stingA = key + "=" + params[key];
+        }
+        else {
+            stingA += ("&" + key + "=" + params[key]);
+        }
+    }
+    var strTemp = stingA + secret;
+    var buf = new Buffer(strTemp);
+//􀗛􁦤􀿥􀨁md5􀓞􁛘
+    strTemp = buf.toString("binary");
+    return crypto.createHash('md5').update(strTemp).digest(
+        'hex');
+};
+
 
 function createSign(param, appkey) {
     var array = new Array();
@@ -74,7 +98,7 @@ function getUserToken(code, callback) {
         appid : appid,
         code : code
     };
-    obj.sign = createSign(obj, appKey);
+    obj.sign = geneSign(obj, appKey);
     var urlstr = 'http://dev.api.web.51h5.com/auth/token';
     post(urlstr, obj, callback);
 };
@@ -84,7 +108,7 @@ function getUserInfo_ex(token, callback) {
         appid : appid,
         token : token
     };
-    obj.sign = createSign(obj, appKey);
+    obj.sign = geneSign(obj, appKey);
     var urlstr = 'http://dev.api.web.51h5.com/auth/info';
     post(urlstr, obj, callback);
 };
@@ -93,14 +117,14 @@ hoowu.getUserInfo = function(code, callback) {
     var token_result = undefined;
     getUserToken(code, function(result) {
         token_result = JSON.parse(result);
-        getUserInfo_ex(token_result.access_token, function(result) {
+        getUserInfo_ex(token_result.data.access_token, function(result) {
             result = JSON.parse(result);
-            callback(err, result, token_result)
+            callback(null, result, token_result)
         })
     });
 };
 
-hoowu.createOrder = function(total_fee, token, callback) {
+hoowu.createOrder = function(total_fee, token, svrID, callback) {
     var subject = { 5 :   "500晶石",
                     10  :  "1000晶石(返利20%)",
                     50 :  "5000晶石(返利25%)礼包",
@@ -112,10 +136,11 @@ hoowu.createOrder = function(total_fee, token, callback) {
         appid : appid,
         token : token,
         total_fee : total_fee,
-        subject : subject[total_free],
-        body : ''
+        subject : subject[total_fee],
+        body :" "
     };
-    obj.sign = createSign(obj, appKey);
+    obj.sign = geneSign(obj, appKey);
+
     var urlstr = 'http://dev.api.web.51h5.com/pay/order';
     post(urlstr, obj, callback);
 };
@@ -124,15 +149,12 @@ hoowu.createOrder = function(total_fee, token, callback) {
 hoowu.refreshToken = function(p) {
     var obj = {
         appid : appid,
-        refresh : refresh_token
+        refresh : p.refresh_token
     };
-    obj.sign = createSign(obj, appKey);
-    var urlstr = 'http://dev.api.web.51h5.com/pay/order';
+    obj.sign = geneSign(obj, appKey);
+    var urlstr = 'http://dev.api.web.51h5.com/auth/refresh';
     post(urlstr, obj, function(result) {
         result = JSON.parse(result);
-        p.accessToken = result.accessToken;
-        p.refresh_token = result.refresh_token;
-        p.expire_in = result.expire_in;
-        p.refreshTime = utils.getSecond();
+        p.initHoowuToken(result);
     });
 };

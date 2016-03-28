@@ -56,14 +56,14 @@ playerHandler.getPlayerInfo = function(req, res) {
     if (p != null) {
         delete  p;
     }
+        var huwoTokenInfo = undefined;
         var egretPlayer = null;
         async.waterfall([
             function(cb) {
                 if (channel.channel == code.CHANNEL.HOOWU) {
-                    hoowu.getUserInfo(params.token, function(err, userInfo, tokenInfo) {
-                        console.log(userInfo);
-                        console.log(tokenInfo);
-                        cb(userInfo);
+                    hoowu.getUserInfo(req.body.token, function(err, userInfo, tokenInfo) {
+                       huwoTokenInfo = tokenInfo;
+                        cb(null, userInfo);
                     });
                 } else {
                     egret.getUserInfo(req.body.token, function(str) {
@@ -74,7 +74,11 @@ playerHandler.getPlayerInfo = function(req, res) {
             function(egret, cb) {
                 if (channel.channel == code.CHANNEL.HOOWU) {
                     egretPlayer = egret;
-                    redisClient.getKey(egretPlayer.openid, cb);
+                    if (egret.code) {
+                        res.end(JSON.stringify({cmdID: req.body.cmdID, ret : egret.code}));
+                        return;
+                    }
+                    redisClient.getKey(egretPlayer.data.openid, cb);
                 } else {
                     egret = JSON.parse(egret);
                     if (egret.code) {
@@ -95,6 +99,9 @@ playerHandler.getPlayerInfo = function(req, res) {
                         p.dealSeedOffline();
                         p.dealofflineCoins();
                         p.dealDayValue();
+                        if (channel.channel == code.CHANNEL.HOOWU) {
+                            p.initHoowuToken(huwoTokenInfo);
+                        }
                         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.OK, cmdParams: JSON.stringify(p.getLoginJson())}));
                         return;
                     });
@@ -110,6 +117,9 @@ playerHandler.getPlayerInfo = function(req, res) {
                         playerSystem.removePlayer(p.id, req.body.svrID);
                     }
                     playerSystem.addPlayer(p);
+                    if (channel.channel == code.CHANNEL.HOOWU) {
+                        p.initHoowuToken(huwoTokenInfo);
+                    }
                     if (p.svrID == 0) {
                         redisClient.hget(p.id + code.GAME_NAME, "attribute", cb);
                     } else {
@@ -1651,7 +1661,7 @@ playerHandler.getLatLOginID = function(req, res) {
         function(cb) {
             if (channel.channel == code.CHANNEL.HOOWU) {
                 hoowu.getUserInfo(req.body.token, function(err, userInfo, tokenInfo) {
-                    cb(userInfo);
+                    cb(null, userInfo);
                 });
             } else {
                 egret.getUserInfo(req.body.token, function(str) {
@@ -1665,7 +1675,7 @@ playerHandler.getLatLOginID = function(req, res) {
             }
             if (channel.channel == code.CHANNEL.HOOWU) {
                 egretPlayer = egret;
-                redisClient.getKey(egretPlayer.openid, cb);
+                redisClient.getKey(egretPlayer.data.openid, cb);
             } else {
                 egret = JSON.parse(egret);
                 if (egret.code) {
@@ -1676,8 +1686,10 @@ playerHandler.getLatLOginID = function(req, res) {
                     cb(err, redis);
                 });
             }
-           }, function(redis, err) {
-            redis = JSON.parse(redis);
+           }, function(redis) {
+            if (redis) {
+                redis = JSON.parse(redis);
+            }
             var svrID = -1;
             if (redis) {
                 if (!redis.lastLoginID) {
@@ -1697,12 +1709,13 @@ playerHandler.getGameVersion = function(req, res) {
 
 playerHandler.createOrder = function(req, res) {
     var params = JSON.parse(req.body.cmdParams);
-    var p = playerSystem.getPlayer(req.body.uid);
+    var p = playerSystem.getPlayer(req.body.uid, req.body.svrID);
     if (!p) {
         res.end(JSON.stringify({cmdID: req.body.cmdID, ret: code.NOT_FIND_PALYER_ERROR}));
         return;
     }
-    hoowu.createOrder(params.total_fee, p.token, function(result) {
+    hoowu.createOrder(params.total_fee, p.access_token, p.svrID, function(result) {
+        var temp = JSON.parse(result);
         res.end(JSON.stringify({cmdID : req.body.cmdID, ret : code.OK, cmdParams : result}));
     });
 };
