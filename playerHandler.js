@@ -17,6 +17,7 @@ var utils = require('./utils');
 var log = require('./log.js').helper;
 var channel = require('./config/channel.json');
 var hoowu = require('./hoowu');
+var hoowuCode = require('./hoowucode.js');
 
 
 var playerHandler = module.exports;
@@ -61,10 +62,18 @@ playerHandler.getPlayerInfo = function(req, res) {
         async.waterfall([
             function(cb) {
                 if (channel.channel == code.CHANNEL.HOOWU) {
+                    huwoTokenInfo = hoowuCode.getToken(req.body.token);
+                    cb(null, hoowuCode.getUserInfo(req.body.token));
+                    hoowuCode.delCode(req.body.token);
+                    /*
                     hoowu.getUserInfo(req.body.token, function(err, userInfo, tokenInfo) {
-                       huwoTokenInfo = tokenInfo;
-                        cb(null, userInfo);
+               //       huwoTokenInfo = tokenInfo;
+                //        cb(null, userInfo);
+                        huwoTokenInfo = hoowuCode.getToken(req.body.token);
+                        cb(null, hoowuCode.getUserInfo(req.body.token));
+                        hoowuCode.delCode(req.body.token);
                     });
+                    */
                 } else {
                     egret.getUserInfo(req.body.token, function(str) {
                         cb(null, str);
@@ -1662,6 +1671,7 @@ playerHandler.getLatLOginID = function(req, res) {
             if (channel.channel == code.CHANNEL.HOOWU) {
                 hoowu.getUserInfo(req.body.token, function(err, userInfo, tokenInfo) {
                     cb(null, userInfo);
+                    hoowuCode.setTokenAndUserInfo(req.body.token, tokenInfo, userInfo);
                 });
             } else {
                 egret.getUserInfo(req.body.token, function(str) {
