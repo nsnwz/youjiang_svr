@@ -9,8 +9,8 @@ var crypto = require('crypto');
 var utils = require('./utils');
 var buffer = require("buffer").Buffer;
 
-var appid = "8u5vbpxj";
-var appKey = "9y0i90dfxrh5du4ykv5namehaz3zuccm";
+var appid = "hmzljvi1";
+var appKey = "otxmk0gn1rpmeckb9m0u3jaggoo7b2uy";
 
 var hoowu = module.exports;
 
@@ -99,7 +99,7 @@ function getUserToken(code, callback) {
         code : code
     };
     obj.sign = geneSign(obj, appKey);
-    var urlstr = 'http://dev.api.web.51h5.com/auth/token';
+    var urlstr = 'http://api.web.51h5.com/auth/token';
     post(urlstr, obj, callback);
 };
 
@@ -109,7 +109,7 @@ function getUserInfo_ex(token, callback) {
         token : token
     };
     obj.sign = geneSign(obj, appKey);
-    var urlstr = 'http://dev.api.web.51h5.com/auth/info';
+    var urlstr = 'http://api.web.51h5.com/auth/info';
     post(urlstr, obj, callback);
 };
 
@@ -141,7 +141,7 @@ hoowu.createOrder = function(total_fee, token, svrID, callback) {
     };
     obj.sign = geneSign(obj, appKey);
 
-    var urlstr = 'http://dev.api.web.51h5.com/pay/order';
+    var urlstr = 'http://api.web.51h5.com/pay/order';
     post(urlstr, obj, callback);
 };
 
@@ -152,7 +152,7 @@ hoowu.refreshToken = function(p) {
         refresh : p.refresh_token
     };
     obj.sign = geneSign(obj, appKey);
-    var urlstr = 'http://dev.api.web.51h5.com/auth/refresh';
+    var urlstr = 'http://api.web.51h5.com/auth/refresh';
     post(urlstr, obj, function(result) {
         result = JSON.parse(result);
         p.initHoowuToken(result);
